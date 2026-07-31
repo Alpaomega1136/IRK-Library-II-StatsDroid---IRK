@@ -1,8 +1,9 @@
-package com.alpaomega1136.statsdroid.feature.lookup.domain
+package com.alpaomega1136.statsdroid.core.statistics.distribution
 
+import javax.inject.Inject
 import kotlin.math.pow
 
-class BinomialCalculator {
+class BinomialCalculator @Inject constructor() {
 
     fun cumulativeProbability(
         numberOfTrials: Int,

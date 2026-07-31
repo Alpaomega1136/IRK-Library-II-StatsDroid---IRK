@@ -1,8 +1,9 @@
-package com.alpaomega1136.statsdroid.feature.lookup.domain
+package com.alpaomega1136.statsdroid.core.statistics.distribution
 
+import javax.inject.Inject
 import kotlin.math.exp
 
-class PoissonCalculator {
+class PoissonCalculator @Inject constructor() {
 
     fun cumulativeProbability(
         averageRate: Double,

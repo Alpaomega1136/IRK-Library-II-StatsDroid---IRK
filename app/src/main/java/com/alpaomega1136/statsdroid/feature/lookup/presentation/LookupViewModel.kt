@@ -1,20 +1,23 @@
 package com.alpaomega1136.statsdroid.feature.lookup.presentation
 
 import androidx.lifecycle.ViewModel
-import com.alpaomega1136.statsdroid.feature.lookup.domain.BinomialCalculator
-import com.alpaomega1136.statsdroid.feature.lookup.domain.NormalDistributionCalculator
-import com.alpaomega1136.statsdroid.feature.lookup.domain.PoissonCalculator
+import com.alpaomega1136.statsdroid.core.statistics.distribution.PoissonCalculator
+import com.alpaomega1136.statsdroid.feature.lookup.domain.model.BinomialRequest
+import com.alpaomega1136.statsdroid.feature.lookup.domain.model.PoissonRequest
+import com.alpaomega1136.statsdroid.feature.lookup.domain.model.StandardNormalRequest
+import com.alpaomega1136.statsdroid.feature.lookup.domain.repository.LookupRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.Locale
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
-class LookupViewModel : ViewModel() {
-
-    private val binomialCalculator = BinomialCalculator()
-    private val poissonCalculator = PoissonCalculator()
-    private val normalDistributionCalculator = NormalDistributionCalculator()
+@HiltViewModel
+class LookupViewModel @Inject constructor(
+    private val repository: LookupRepository,
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LookupUiState())
     val uiState: StateFlow<LookupUiState> = _uiState.asStateFlow()
@@ -217,10 +220,12 @@ class LookupViewModel : ViewModel() {
             return
         }
 
-        val result = binomialCalculator.cumulativeProbability(
-            numberOfTrials = checkNotNull(numberOfTrials),
-            threshold = checkNotNull(threshold),
-            successProbability = currentInput.successProbability,
+        val result = repository.calculateBinomialCumulative(
+            request = BinomialRequest(
+                numberOfTrials = checkNotNull(numberOfTrials),
+                threshold = checkNotNull(threshold),
+                successProbability = currentInput.successProbability,
+            ),
         )
 
         _uiState.update { currentState ->
@@ -278,9 +283,11 @@ class LookupViewModel : ViewModel() {
             return
         }
 
-        val result = poissonCalculator.cumulativeProbability(
-            averageRate = checkNotNull(averageRate),
-            threshold = checkNotNull(threshold),
+        val result = repository.calculatePoissonCumulative(
+            request = PoissonRequest(
+                averageRate = checkNotNull(averageRate),
+                threshold = checkNotNull(threshold),
+            ),
         )
 
         _uiState.update { currentState ->
@@ -323,8 +330,11 @@ class LookupViewModel : ViewModel() {
             return
         }
 
-        val result = normalDistributionCalculator
-            .cumulativeProbability(checkNotNull(zScore))
+        val result = repository.calculateStandardNormalCumulative(
+            request = StandardNormalRequest(
+                zScore = checkNotNull(zScore),
+            ),
+        )
 
         _uiState.update { currentState ->
             currentState.copy(

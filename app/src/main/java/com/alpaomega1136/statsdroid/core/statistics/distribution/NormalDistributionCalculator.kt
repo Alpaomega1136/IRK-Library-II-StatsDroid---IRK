@@ -1,12 +1,13 @@
-package com.alpaomega1136.statsdroid.feature.lookup.domain
+package com.alpaomega1136.statsdroid.core.statistics.distribution
 
+import javax.inject.Inject
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.exp
 import kotlin.math.pow
 import kotlin.math.sqrt
 
-class NormalDistributionCalculator {
+class NormalDistributionCalculator @Inject constructor() {
 
     fun probabilityDensity(z: Double): Double {
         require(z.isFinite()) {
