@@ -7,7 +7,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.alpaomega1136.statsdroid.feature.about.presentation.AboutScreen
 import com.alpaomega1136.statsdroid.feature.hypothesis.presentation.HypothesisScreen
-import com.alpaomega1136.statsdroid.feature.lookup.presentation.LookupScreen
+import com.alpaomega1136.statsdroid.feature.lookup.presentation.LookupRoute
 
 @Composable
 fun StatsDroidNavHost(
@@ -20,7 +20,7 @@ fun StatsDroidNavHost(
         modifier = modifier,
     ) {
         composable(route = AppDestination.Lookup.route) {
-            LookupScreen()
+            LookupRoute()
         }
 
         composable(route = AppDestination.Hypothesis.route) {
