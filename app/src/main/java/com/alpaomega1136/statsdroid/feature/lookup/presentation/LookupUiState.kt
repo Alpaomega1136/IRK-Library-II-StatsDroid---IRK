@@ -1,5 +1,7 @@
 package com.alpaomega1136.statsdroid.feature.lookup.presentation
 
+import com.alpaomega1136.statsdroid.core.statistics.model.NormalCurvePoint
+
 data class BinomialInputState(
     val numberOfTrials: String = "",
     val threshold: String = "",
@@ -30,5 +32,7 @@ data class LookupUiState(
         PoissonInputState(),
     val normalInput: NormalInputState =
         NormalInputState(),
+    val normalCurvePoints: List<NormalCurvePoint> =
+        emptyList(),
     val calculationResult: Double? = null,
 )

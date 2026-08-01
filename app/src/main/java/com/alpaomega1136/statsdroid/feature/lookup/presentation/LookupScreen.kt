@@ -1,12 +1,9 @@
 package com.alpaomega1136.statsdroid.feature.lookup.presentation
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -16,6 +13,7 @@ import com.alpaomega1136.statsdroid.feature.lookup.presentation.components.Binom
 import com.alpaomega1136.statsdroid.feature.lookup.presentation.components.DistributionSelector
 import com.alpaomega1136.statsdroid.feature.lookup.presentation.components.PoissonInputForm
 import com.alpaomega1136.statsdroid.feature.lookup.presentation.components.ProbabilityResultCard
+import com.alpaomega1136.statsdroid.feature.lookup.presentation.components.StandardNormalInputForm
 
 @Composable
 fun LookupScreen(
@@ -73,9 +71,10 @@ fun LookupScreen(
                 }
 
                 DistributionType.STANDARD_NORMAL -> {
-                    FeaturePlaceholderCard(
-                        title = "Standard Normal Curve",
-                        description = "The synchronized slider and bell curve will be added after the Poisson form.",
+                    StandardNormalInputForm(
+                        inputState = uiState.normalInput,
+                        curvePoints = uiState.normalCurvePoints,
+                        onEvent = onEvent,
                     )
                 }
             }
@@ -85,32 +84,6 @@ fun LookupScreen(
             item {
                 ProbabilityResultCard(probability = result)
             }
-        }
-    }
-}
-
-@Composable
-private fun FeaturePlaceholderCard(
-    title: String,
-    description: String,
-    modifier: Modifier = Modifier,
-) {
-    Card(
-        modifier = modifier,
-    ) {
-        Column(
-            modifier = Modifier.padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-            )
-
-            Text(
-                text = description,
-                style = MaterialTheme.typography.bodyMedium,
-            )
         }
     }
 }

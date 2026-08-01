@@ -1,11 +1,12 @@
 package com.alpaomega1136.statsdroid.feature.lookup.presentation
 
 import androidx.lifecycle.ViewModel
-import com.alpaomega1136.statsdroid.core.statistics.distribution.PoissonCalculator
-import com.alpaomega1136.statsdroid.feature.lookup.domain.model.BinomialRequest
-import com.alpaomega1136.statsdroid.feature.lookup.domain.model.PoissonRequest
-import com.alpaomega1136.statsdroid.feature.lookup.domain.model.StandardNormalRequest
 import com.alpaomega1136.statsdroid.feature.lookup.domain.repository.LookupRepository
+import com.alpaomega1136.statsdroid.feature.lookup.domain.validation.BinomialInputValidator
+import com.alpaomega1136.statsdroid.feature.lookup.domain.validation.LookupInputField
+import com.alpaomega1136.statsdroid.feature.lookup.domain.validation.LookupValidationResult
+import com.alpaomega1136.statsdroid.feature.lookup.domain.validation.PoissonInputValidator
+import com.alpaomega1136.statsdroid.feature.lookup.domain.validation.StandardNormalInputValidator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.Locale
 import javax.inject.Inject
@@ -17,9 +18,20 @@ import kotlinx.coroutines.flow.update
 @HiltViewModel
 class LookupViewModel @Inject constructor(
     private val repository: LookupRepository,
+    private val binomialInputValidator: BinomialInputValidator,
+    private val poissonInputValidator: PoissonInputValidator,
+    private val standardNormalInputValidator: StandardNormalInputValidator,
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(LookupUiState())
+    private val _uiState = MutableStateFlow(
+        LookupUiState(
+            normalCurvePoints = repository.generateStandardNormalCurve(
+                minZ = StandardNormalInputValidator.MIN_Z_SCORE,
+                maxZ = StandardNormalInputValidator.MAX_Z_SCORE,
+                step = NORMAL_CURVE_STEP,
+            ),
+        ),
+    )
     val uiState: StateFlow<LookupUiState> = _uiState.asStateFlow()
 
     fun onEvent(event: LookupEvent) {
@@ -142,7 +154,8 @@ class LookupViewModel @Inject constructor(
                     zScoreText = value,
                     zScoreValue = if (
                         parsedValue != null &&
-                        parsedValue in MIN_Z_SCORE..MAX_Z_SCORE
+                        parsedValue in StandardNormalInputValidator.MIN_Z_SCORE..
+                        StandardNormalInputValidator.MAX_Z_SCORE
                     ) {
                         parsedValue
                     } else {
@@ -156,7 +169,10 @@ class LookupViewModel @Inject constructor(
     }
 
     private fun changeNormalZSlider(value: Double) {
-        val boundedValue = value.coerceIn(MIN_Z_SCORE, MAX_Z_SCORE)
+        val boundedValue = value.coerceIn(
+            StandardNormalInputValidator.MIN_Z_SCORE,
+            StandardNormalInputValidator.MAX_Z_SCORE,
+        )
         val formattedValue = String.format(Locale.US, "%.2f", boundedValue)
 
         _uiState.update { currentState ->
@@ -181,169 +197,105 @@ class LookupViewModel @Inject constructor(
 
     private fun calculateBinomial() {
         val currentInput = _uiState.value.binomialInput
-        val numberOfTrials = currentInput.numberOfTrials.toIntOrNull()
-        val threshold = currentInput.threshold.toIntOrNull()
-
-        val trialsError = when {
-            numberOfTrials == null ->
-                "Number of trials is required."
-
-            numberOfTrials !in MIN_BINOMIAL_TRIALS..MAX_BINOMIAL_TRIALS ->
-                "Number of trials must be between 1 and 20."
-
-            else -> null
-        }
-
-        val thresholdError = when {
-            threshold == null ->
-                "Success threshold is required."
-
-            threshold < 0 ->
-                "Success threshold cannot be negative."
-
-            numberOfTrials != null && threshold > numberOfTrials ->
-                "Success threshold cannot exceed number of trials."
-
-            else -> null
-        }
-
-        if (trialsError != null || thresholdError != null) {
-            _uiState.update { currentState ->
-                currentState.copy(
-                    binomialInput = currentInput.copy(
-                        numberOfTrialsError = trialsError,
-                        thresholdError = thresholdError,
-                    ),
-                    calculationResult = null,
-                )
-            }
-            return
-        }
-
-        val result = repository.calculateBinomialCumulative(
-            request = BinomialRequest(
-                numberOfTrials = checkNotNull(numberOfTrials),
-                threshold = checkNotNull(threshold),
+        when (
+            val validationResult = binomialInputValidator.validate(
+                numberOfTrialsText = currentInput.numberOfTrials,
+                thresholdText = currentInput.threshold,
                 successProbability = currentInput.successProbability,
-            ),
-        )
-
-        _uiState.update { currentState ->
-            currentState.copy(
-                binomialInput = currentInput.copy(
-                    numberOfTrialsError = null,
-                    thresholdError = null,
-                ),
-                calculationResult = result,
             )
+        ) {
+            is LookupValidationResult.Valid -> {
+                val result = repository.calculateBinomialCumulative(validationResult.value)
+                _uiState.update { currentState ->
+                    currentState.copy(
+                        binomialInput = currentInput.copy(
+                            numberOfTrialsError = null,
+                            thresholdError = null,
+                        ),
+                        calculationResult = result,
+                    )
+                }
+            }
+
+            is LookupValidationResult.Invalid -> {
+                val errors = validationResult.errors
+                _uiState.update { currentState ->
+                    currentState.copy(
+                        binomialInput = currentInput.copy(
+                            numberOfTrialsError = errors[LookupInputField.BINOMIAL_TRIALS],
+                            thresholdError = errors[LookupInputField.BINOMIAL_THRESHOLD],
+                        ),
+                        calculationResult = null,
+                    )
+                }
+            }
         }
     }
 
     private fun calculatePoisson() {
         val currentInput = _uiState.value.poissonInput
-        val averageRate = currentInput.averageRate.toDoubleOrNull()
-        val threshold = currentInput.threshold.toIntOrNull()
-
-        val averageRateError = when {
-            averageRate == null ->
-                "Average rate is required."
-
-            !averageRate.isFinite() ->
-                "Average rate must be a finite number."
-
-            averageRate <= 0.0 ->
-                "Average rate must be greater than 0."
-
-            averageRate > PoissonCalculator.MAX_AVERAGE_RATE ->
-                "Average rate must not exceed 100."
-
-            else -> null
-        }
-
-        val thresholdError = when {
-            threshold == null ->
-                "Success threshold is required."
-
-            threshold < 0 ->
-                "Success threshold cannot be negative."
-
-            else -> null
-        }
-
-        if (averageRateError != null || thresholdError != null) {
-            _uiState.update { currentState ->
-                currentState.copy(
-                    poissonInput = currentInput.copy(
-                        averageRateError = averageRateError,
-                        thresholdError = thresholdError,
-                    ),
-                    calculationResult = null,
-                )
-            }
-            return
-        }
-
-        val result = repository.calculatePoissonCumulative(
-            request = PoissonRequest(
-                averageRate = checkNotNull(averageRate),
-                threshold = checkNotNull(threshold),
-            ),
-        )
-
-        _uiState.update { currentState ->
-            currentState.copy(
-                poissonInput = currentInput.copy(
-                    averageRateError = null,
-                    thresholdError = null,
-                ),
-                calculationResult = result,
+        when (
+            val validationResult = poissonInputValidator.validate(
+                averageRateText = currentInput.averageRate,
+                thresholdText = currentInput.threshold,
             )
+        ) {
+            is LookupValidationResult.Valid -> {
+                val result = repository.calculatePoissonCumulative(validationResult.value)
+                _uiState.update { currentState ->
+                    currentState.copy(
+                        poissonInput = currentInput.copy(
+                            averageRateError = null,
+                            thresholdError = null,
+                        ),
+                        calculationResult = result,
+                    )
+                }
+            }
+
+            is LookupValidationResult.Invalid -> {
+                val errors = validationResult.errors
+                _uiState.update { currentState ->
+                    currentState.copy(
+                        poissonInput = currentInput.copy(
+                            averageRateError = errors[LookupInputField.POISSON_AVERAGE_RATE],
+                            thresholdError = errors[LookupInputField.POISSON_THRESHOLD],
+                        ),
+                        calculationResult = null,
+                    )
+                }
+            }
         }
     }
 
     private fun calculateStandardNormal() {
         val currentInput = _uiState.value.normalInput
-        val zScore = currentInput.zScoreText.toDoubleOrNull()
-
-        val zScoreError = when {
-            zScore == null ->
-                "Z-score is required."
-
-            !zScore.isFinite() ->
-                "Z-score must be a finite number."
-
-            zScore !in MIN_Z_SCORE..MAX_Z_SCORE ->
-                "Z-score must be between -5.0 and 5.0."
-
-            else -> null
-        }
-
-        if (zScoreError != null) {
-            _uiState.update { currentState ->
-                currentState.copy(
-                    normalInput = currentInput.copy(
-                        zScoreError = zScoreError,
-                    ),
-                    calculationResult = null,
-                )
+        when (val validationResult = standardNormalInputValidator.validate(currentInput.zScoreText)) {
+            is LookupValidationResult.Valid -> {
+                val request = validationResult.value
+                val result = repository.calculateStandardNormalCumulative(request)
+                _uiState.update { currentState ->
+                    currentState.copy(
+                        normalInput = currentInput.copy(
+                            zScoreValue = request.zScore,
+                            zScoreError = null,
+                        ),
+                        calculationResult = result,
+                    )
+                }
             }
-            return
-        }
 
-        val result = repository.calculateStandardNormalCumulative(
-            request = StandardNormalRequest(
-                zScore = checkNotNull(zScore),
-            ),
-        )
-
-        _uiState.update { currentState ->
-            currentState.copy(
-                normalInput = currentInput.copy(
-                    zScoreValue = zScore,
-                    zScoreError = null,
-                ),
-                calculationResult = result,
-            )
+            is LookupValidationResult.Invalid -> {
+                val errors = validationResult.errors
+                _uiState.update { currentState ->
+                    currentState.copy(
+                        normalInput = currentInput.copy(
+                            zScoreError = errors[LookupInputField.NORMAL_Z_SCORE],
+                        ),
+                        calculationResult = null,
+                    )
+                }
+            }
         }
     }
 
@@ -362,14 +314,10 @@ class LookupViewModel @Inject constructor(
     }
 
     companion object {
+        private const val NORMAL_CURVE_STEP = 0.05
+
         val BINOMIAL_PROBABILITIES =
             (1..9).map { value -> value / 10.0 }
-
-        private const val MIN_BINOMIAL_TRIALS = 1
-        private const val MAX_BINOMIAL_TRIALS = 20
-
-        const val MIN_Z_SCORE = -5.0
-        const val MAX_Z_SCORE = 5.0
 
         private val DECIMAL_INPUT_REGEX =
             Regex("""\d*\.?\d*""")
