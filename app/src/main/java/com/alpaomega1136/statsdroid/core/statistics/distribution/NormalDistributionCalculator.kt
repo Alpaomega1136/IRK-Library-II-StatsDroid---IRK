@@ -63,6 +63,29 @@ class NormalDistributionCalculator @Inject constructor() {
             ).coerceIn(0.0, 1.0)
     }
 
+    fun inverseCumulativeProbability(probability: Double): Double {
+        require(probability.isFinite()) {
+            "Probability must be a finite number."
+        }
+        require(probability > 0.0 && probability < 1.0) {
+            "Probability must be strictly between 0 and 1."
+        }
+
+        var lowerBound = MIN_INVERSE_Z
+        var upperBound = MAX_INVERSE_Z
+
+        repeat(INVERSE_SEARCH_ITERATIONS) {
+            val midpoint = (lowerBound + upperBound) / 2.0
+            if (cumulativeProbability(midpoint) < probability) {
+                lowerBound = midpoint
+            } else {
+                upperBound = midpoint
+            }
+        }
+
+        return (lowerBound + upperBound) / 2.0
+    }
+
     companion object {
         private val NORMALIZATION_CONSTANT =
             1.0 / sqrt(2.0 * PI)
@@ -74,5 +97,9 @@ class NormalDistributionCalculator @Inject constructor() {
         private const val COEFFICIENT_3 = 1.781477937
         private const val COEFFICIENT_4 = -1.821255978
         private const val COEFFICIENT_5 = 1.330274429
+
+        private const val MIN_INVERSE_Z = -8.0
+        private const val MAX_INVERSE_Z = 8.0
+        private const val INVERSE_SEARCH_ITERATIONS = 100
     }
 }
