@@ -4,6 +4,8 @@ import com.alpaomega1136.statsdroid.feature.hypothesis.data.local.DefaultHypothe
 import com.alpaomega1136.statsdroid.feature.hypothesis.data.local.HypothesisLocalDataSource
 import com.alpaomega1136.statsdroid.feature.hypothesis.data.repository.DefaultHypothesisRepository
 import com.alpaomega1136.statsdroid.feature.hypothesis.domain.repository.HypothesisRepository
+import com.alpaomega1136.statsdroid.feature.hypothesis.domain.visualization.DefaultHypothesisVisualizationGenerator
+import com.alpaomega1136.statsdroid.feature.hypothesis.domain.visualization.HypothesisVisualizationGenerator
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -21,4 +23,10 @@ abstract class HypothesisModule {
     @Binds
     @Singleton
     abstract fun bindHypothesisRepository(implementation: DefaultHypothesisRepository): HypothesisRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindHypothesisVisualizationGenerator(
+        implementation: DefaultHypothesisVisualizationGenerator,
+    ): HypothesisVisualizationGenerator
 }

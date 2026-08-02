@@ -11,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.alpaomega1136.statsdroid.feature.hypothesis.presentation.components.HypothesisDistributionChart
 import com.alpaomega1136.statsdroid.feature.hypothesis.presentation.components.HypothesisInputForm
 import com.alpaomega1136.statsdroid.feature.hypothesis.presentation.components.HypothesisResultCard
 import com.alpaomega1136.statsdroid.feature.hypothesis.presentation.components.HypothesisTestTypeSelector
@@ -77,9 +78,18 @@ fun HypothesisScreen(
             }
         }
 
-        uiState.result?.let {
+        uiState.result?.let { result ->
+            uiState.visualization?.let { visualization ->
+                item {
+                    HypothesisDistributionChart(
+                        result = result,
+                        visualization = visualization,
+                    )
+                }
+            }
+
             item {
-                HypothesisResultCard(result = it)
+                HypothesisResultCard(result = result)
             }
         }
     }

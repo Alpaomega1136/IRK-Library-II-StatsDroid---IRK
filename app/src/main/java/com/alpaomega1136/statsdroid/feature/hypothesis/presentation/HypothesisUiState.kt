@@ -4,6 +4,7 @@ import com.alpaomega1136.statsdroid.feature.hypothesis.domain.model.HypothesisTe
 import com.alpaomega1136.statsdroid.feature.hypothesis.domain.model.HypothesisTestType
 import com.alpaomega1136.statsdroid.feature.hypothesis.domain.model.SignificanceLevel
 import com.alpaomega1136.statsdroid.feature.hypothesis.domain.model.TailType
+import com.alpaomega1136.statsdroid.feature.hypothesis.domain.visualization.HypothesisVisualizationData
 
 data class HypothesisInputState(
     val hypothesizedMean: String = "0.0",
@@ -24,4 +25,5 @@ data class HypothesisUiState(
     val significanceLevel: SignificanceLevel = SignificanceLevel.FIVE_PERCENT,
     val tailType: TailType = TailType.TWO_TAILED,
     val result: HypothesisTestResult? = null,
+    val visualization: HypothesisVisualizationData? = null,
 )

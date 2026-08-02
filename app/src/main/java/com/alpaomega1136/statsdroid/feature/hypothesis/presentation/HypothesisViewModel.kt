@@ -2,12 +2,14 @@ package com.alpaomega1136.statsdroid.feature.hypothesis.presentation
 
 import androidx.lifecycle.ViewModel
 import com.alpaomega1136.statsdroid.feature.hypothesis.domain.model.HypothesisConstraints
+import com.alpaomega1136.statsdroid.feature.hypothesis.domain.model.HypothesisTestResult
 import com.alpaomega1136.statsdroid.feature.hypothesis.domain.model.HypothesisTestType
 import com.alpaomega1136.statsdroid.feature.hypothesis.domain.repository.HypothesisRepository
 import com.alpaomega1136.statsdroid.feature.hypothesis.domain.validation.HypothesisInputField
 import com.alpaomega1136.statsdroid.feature.hypothesis.domain.validation.HypothesisValidationResult
 import com.alpaomega1136.statsdroid.feature.hypothesis.domain.validation.TTestInputValidator
 import com.alpaomega1136.statsdroid.feature.hypothesis.domain.validation.ZTestInputValidator
+import com.alpaomega1136.statsdroid.feature.hypothesis.domain.visualization.HypothesisVisualizationGenerator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.Locale
 import javax.inject.Inject
@@ -19,6 +21,7 @@ import kotlinx.coroutines.flow.update
 @HiltViewModel
 class HypothesisViewModel @Inject constructor(
     private val repository: HypothesisRepository,
+    private val visualizationGenerator: HypothesisVisualizationGenerator,
     private val zTestInputValidator: ZTestInputValidator,
     private val tTestInputValidator: TTestInputValidator,
 ) : ViewModel() {
@@ -35,14 +38,18 @@ class HypothesisViewModel @Inject constructor(
             is HypothesisEvent.SampleMeanSliderChanged -> changeSampleMeanSlider(event.value)
             is HypothesisEvent.StandardDeviationChanged -> changeStandardDeviation(event.value)
             is HypothesisEvent.SampleSizeChanged -> changeSampleSize(event.value)
-            is HypothesisEvent.SignificanceLevelChanged -> _uiState.update { it.copy(significanceLevel = event.significanceLevel, result = null) }
-            is HypothesisEvent.TailTypeChanged -> _uiState.update { it.copy(tailType = event.tailType, result = null) }
+            is HypothesisEvent.SignificanceLevelChanged -> _uiState.update {
+                it.copy(significanceLevel = event.significanceLevel, result = null, visualization = null)
+            }
+            is HypothesisEvent.TailTypeChanged -> _uiState.update {
+                it.copy(tailType = event.tailType, result = null, visualization = null)
+            }
             HypothesisEvent.Calculate -> calculate()
         }
     }
 
     private fun changeTestType(testType: HypothesisTestType) {
-        _uiState.update { it.copy(selectedTestType = testType, input = it.input.clearErrors(), result = null) }
+        _uiState.update { it.copy(selectedTestType = testType, input = it.input.clearErrors(), result = null, visualization = null) }
     }
 
     private fun changeHypothesizedMean(value: String) {
@@ -60,6 +67,7 @@ class HypothesisViewModel @Inject constructor(
                     hypothesizedMeanError = null,
                 ),
                 result = null,
+                visualization = null,
             )
         }
     }
@@ -79,6 +87,7 @@ class HypothesisViewModel @Inject constructor(
                     sampleMeanError = null,
                 ),
                 result = null,
+                visualization = null,
             )
         }
     }
@@ -93,6 +102,7 @@ class HypothesisViewModel @Inject constructor(
                     hypothesizedMeanError = null,
                 ),
                 result = null,
+                visualization = null,
             )
         }
     }
@@ -107,18 +117,21 @@ class HypothesisViewModel @Inject constructor(
                     sampleMeanError = null,
                 ),
                 result = null,
+                visualization = null,
             )
         }
     }
 
     private fun changeStandardDeviation(value: String) {
         if (!isValidUnsignedDecimalInput(value)) return
-        _uiState.update { it.copy(input = it.input.copy(standardDeviation = value, standardDeviationError = null), result = null) }
+        _uiState.update {
+            it.copy(input = it.input.copy(standardDeviation = value, standardDeviationError = null), result = null, visualization = null)
+        }
     }
 
     private fun changeSampleSize(value: String) {
         if (!isValidIntegerInput(value)) return
-        _uiState.update { it.copy(input = it.input.copy(sampleSize = value, sampleSizeError = null), result = null) }
+        _uiState.update { it.copy(input = it.input.copy(sampleSize = value, sampleSizeError = null), result = null, visualization = null) }
     }
 
     private fun calculate() {
@@ -141,9 +154,7 @@ class HypothesisViewModel @Inject constructor(
                 tailType = state.tailType,
             )
         ) {
-            is HypothesisValidationResult.Valid -> _uiState.update {
-                it.copy(input = input.clearErrors(), result = repository.calculateZTest(validationResult.value))
-            }
+            is HypothesisValidationResult.Valid -> applySuccessfulResult(repository.calculateZTest(validationResult.value), input)
             is HypothesisValidationResult.Invalid -> applyValidationErrors(validationResult.errors)
         }
     }
@@ -161,10 +172,18 @@ class HypothesisViewModel @Inject constructor(
                 tailType = state.tailType,
             )
         ) {
-            is HypothesisValidationResult.Valid -> _uiState.update {
-                it.copy(input = input.clearErrors(), result = repository.calculateTTest(validationResult.value))
-            }
+            is HypothesisValidationResult.Valid -> applySuccessfulResult(repository.calculateTTest(validationResult.value), input)
             is HypothesisValidationResult.Invalid -> applyValidationErrors(validationResult.errors)
+        }
+    }
+
+    private fun applySuccessfulResult(result: HypothesisTestResult, currentInput: HypothesisInputState) {
+        _uiState.update {
+            it.copy(
+                input = currentInput.clearErrors(),
+                result = result,
+                visualization = visualizationGenerator.generate(result),
+            )
         }
     }
 
@@ -178,6 +197,7 @@ class HypothesisViewModel @Inject constructor(
                     sampleSizeError = errors[HypothesisInputField.SAMPLE_SIZE],
                 ),
                 result = null,
+                visualization = null,
             )
         }
     }
