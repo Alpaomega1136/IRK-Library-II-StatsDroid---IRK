@@ -10,7 +10,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.alpaomega1136.statsdroid.R
 import com.alpaomega1136.statsdroid.feature.hypothesis.presentation.components.HypothesisDistributionChart
 import com.alpaomega1136.statsdroid.feature.hypothesis.presentation.components.HypothesisInputForm
 import com.alpaomega1136.statsdroid.feature.hypothesis.presentation.components.HypothesisResultCard
@@ -30,12 +32,12 @@ fun HypothesisScreen(
         verticalArrangement = Arrangement.spacedBy(24.dp),
     ) {
         item {
-            Text(text = "Visual Hypothesis Tester", style = MaterialTheme.typography.headlineMedium)
+            Text(text = stringResource(R.string.hypothesis_title), style = MaterialTheme.typography.headlineMedium)
         }
 
         item {
             Text(
-                text = "Compare a calculated test statistic with its critical region and determine whether the null hypothesis should be rejected.",
+                text = stringResource(R.string.hypothesis_description),
                 style = MaterialTheme.typography.bodyLarge,
             )
         }
@@ -74,7 +76,7 @@ fun HypothesisScreen(
                 onClick = { onEvent(HypothesisEvent.Calculate) },
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text(text = "Run hypothesis test")
+                Text(text = stringResource(R.string.run_hypothesis_test))
             }
         }
 

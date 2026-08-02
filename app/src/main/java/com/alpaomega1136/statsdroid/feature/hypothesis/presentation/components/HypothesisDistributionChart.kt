@@ -20,7 +20,11 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import com.alpaomega1136.statsdroid.R
 import com.alpaomega1136.statsdroid.feature.hypothesis.domain.model.HypothesisTestResult
 import com.alpaomega1136.statsdroid.feature.hypothesis.domain.model.HypothesisTestType
 import com.alpaomega1136.statsdroid.feature.hypothesis.domain.visualization.CurveInterval
@@ -40,6 +44,7 @@ fun HypothesisDistributionChart(
     val criticalLineColor = MaterialTheme.colorScheme.error
     val statisticLineColor = MaterialTheme.colorScheme.tertiary
     val axisColor = MaterialTheme.colorScheme.outline
+    val chartDescription = stringResource(R.string.hypothesis_chart_description)
 
     Card(modifier = modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -55,7 +60,10 @@ fun HypothesisDistributionChart(
             Canvas(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(250.dp),
+                    .height(250.dp)
+                    .semantics {
+                        contentDescription = chartDescription
+                    },
             ) {
                 val points = visualization.curvePoints
                 if (points.size < 2) return@Canvas

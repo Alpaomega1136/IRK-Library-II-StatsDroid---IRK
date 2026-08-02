@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">StatsDroid</string>
+    <string name="lookup_title">Probstat Table Lookup</string>
+    <string name="lookup_description">Choose a probability distribution, enter its parameters, and calculate the cumulative probability.</string>
+    <string name="hypothesis_title">Visual Hypothesis Tester</string>
+    <string name="hypothesis_description">Compare a calculated test statistic with its critical region and determine whether the null hypothesis should be rejected.</string>
+    <string name="run_hypothesis_test">Run hypothesis test</string>
+    <string name="hypothesis_chart_description">Hypothesis distribution chart with rejection regions, p-value area, critical values, and calculated statistic.</string>
 </resources>

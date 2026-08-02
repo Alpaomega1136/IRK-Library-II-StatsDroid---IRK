@@ -1,5 +1,6 @@
 package com.alpaomega1136.statsdroid.feature.lookup.presentation
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import com.alpaomega1136.statsdroid.feature.lookup.domain.repository.LookupRepository
 import com.alpaomega1136.statsdroid.feature.lookup.domain.validation.BinomialInputValidator
@@ -21,17 +22,10 @@ class LookupViewModel @Inject constructor(
     private val binomialInputValidator: BinomialInputValidator,
     private val poissonInputValidator: PoissonInputValidator,
     private val standardNormalInputValidator: StandardNormalInputValidator,
+    private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(
-        LookupUiState(
-            normalCurvePoints = repository.generateStandardNormalCurve(
-                minZ = StandardNormalInputValidator.MIN_Z_SCORE,
-                maxZ = StandardNormalInputValidator.MAX_Z_SCORE,
-                step = NORMAL_CURVE_STEP,
-            ),
-        ),
-    )
+    private val _uiState = MutableStateFlow(createInitialState())
     val uiState: StateFlow<LookupUiState> = _uiState.asStateFlow()
 
     fun onEvent(event: LookupEvent) {
@@ -63,6 +57,48 @@ class LookupViewModel @Inject constructor(
             LookupEvent.Calculate ->
                 calculate()
         }
+
+        saveRestorableState(_uiState.value)
+    }
+
+    private fun createInitialState(): LookupUiState {
+        val selectedDistribution = savedStateHandle
+            .get<String>(KEY_DISTRIBUTION)
+            ?.let { runCatching { DistributionType.valueOf(it) }.getOrNull() }
+            ?: DistributionType.BINOMIAL
+
+        return LookupUiState(
+            selectedDistribution = selectedDistribution,
+            binomialInput = BinomialInputState(
+                numberOfTrials = savedStateHandle[KEY_BINOMIAL_TRIALS] ?: "",
+                threshold = savedStateHandle[KEY_BINOMIAL_THRESHOLD] ?: "",
+                successProbability = savedStateHandle[KEY_BINOMIAL_PROBABILITY] ?: 0.5,
+            ),
+            poissonInput = PoissonInputState(
+                averageRate = savedStateHandle[KEY_POISSON_RATE] ?: "",
+                threshold = savedStateHandle[KEY_POISSON_THRESHOLD] ?: "",
+            ),
+            normalInput = NormalInputState(
+                zScoreText = savedStateHandle[KEY_NORMAL_Z_TEXT] ?: "0.0",
+                zScoreValue = savedStateHandle[KEY_NORMAL_Z_VALUE] ?: 0.0,
+            ),
+            normalCurvePoints = repository.generateStandardNormalCurve(
+                minZ = StandardNormalInputValidator.MIN_Z_SCORE,
+                maxZ = StandardNormalInputValidator.MAX_Z_SCORE,
+                step = NORMAL_CURVE_STEP,
+            ),
+        )
+    }
+
+    private fun saveRestorableState(state: LookupUiState) {
+        savedStateHandle[KEY_DISTRIBUTION] = state.selectedDistribution.name
+        savedStateHandle[KEY_BINOMIAL_TRIALS] = state.binomialInput.numberOfTrials
+        savedStateHandle[KEY_BINOMIAL_THRESHOLD] = state.binomialInput.threshold
+        savedStateHandle[KEY_BINOMIAL_PROBABILITY] = state.binomialInput.successProbability
+        savedStateHandle[KEY_POISSON_RATE] = state.poissonInput.averageRate
+        savedStateHandle[KEY_POISSON_THRESHOLD] = state.poissonInput.threshold
+        savedStateHandle[KEY_NORMAL_Z_TEXT] = state.normalInput.zScoreText
+        savedStateHandle[KEY_NORMAL_Z_VALUE] = state.normalInput.zScoreValue
     }
 
     private fun changeDistribution(distribution: DistributionType) {
@@ -315,6 +351,14 @@ class LookupViewModel @Inject constructor(
 
     companion object {
         private const val NORMAL_CURVE_STEP = 0.05
+        private const val KEY_DISTRIBUTION = "lookup_distribution"
+        private const val KEY_BINOMIAL_TRIALS = "lookup_binomial_trials"
+        private const val KEY_BINOMIAL_THRESHOLD = "lookup_binomial_threshold"
+        private const val KEY_BINOMIAL_PROBABILITY = "lookup_binomial_probability"
+        private const val KEY_POISSON_RATE = "lookup_poisson_rate"
+        private const val KEY_POISSON_THRESHOLD = "lookup_poisson_threshold"
+        private const val KEY_NORMAL_Z_TEXT = "lookup_normal_z_text"
+        private const val KEY_NORMAL_Z_VALUE = "lookup_normal_z_value"
 
         val BINOMIAL_PROBABILITIES =
             (1..9).map { value -> value / 10.0 }

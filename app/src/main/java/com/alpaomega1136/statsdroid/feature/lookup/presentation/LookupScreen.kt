@@ -8,7 +8,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.alpaomega1136.statsdroid.R
 import com.alpaomega1136.statsdroid.feature.lookup.presentation.components.BinomialInputForm
 import com.alpaomega1136.statsdroid.feature.lookup.presentation.components.DistributionSelector
 import com.alpaomega1136.statsdroid.feature.lookup.presentation.components.PoissonInputForm
@@ -31,14 +33,14 @@ fun LookupScreen(
     ) {
         item {
             Text(
-                text = "Probstat Table Lookup",
+                text = stringResource(R.string.lookup_title),
                 style = MaterialTheme.typography.headlineMedium,
             )
         }
 
         item {
             Text(
-                text = "Choose a probability distribution, enter its parameters, and calculate the cumulative probability.",
+                text = stringResource(R.string.lookup_description),
                 style = MaterialTheme.typography.bodyLarge,
             )
         }

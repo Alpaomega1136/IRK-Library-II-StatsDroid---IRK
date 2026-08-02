@@ -1,9 +1,12 @@
 package com.alpaomega1136.statsdroid.feature.hypothesis.presentation
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import com.alpaomega1136.statsdroid.feature.hypothesis.domain.model.HypothesisConstraints
 import com.alpaomega1136.statsdroid.feature.hypothesis.domain.model.HypothesisTestResult
 import com.alpaomega1136.statsdroid.feature.hypothesis.domain.model.HypothesisTestType
+import com.alpaomega1136.statsdroid.feature.hypothesis.domain.model.SignificanceLevel
+import com.alpaomega1136.statsdroid.feature.hypothesis.domain.model.TailType
 import com.alpaomega1136.statsdroid.feature.hypothesis.domain.repository.HypothesisRepository
 import com.alpaomega1136.statsdroid.feature.hypothesis.domain.validation.HypothesisInputField
 import com.alpaomega1136.statsdroid.feature.hypothesis.domain.validation.HypothesisValidationResult
@@ -24,9 +27,10 @@ class HypothesisViewModel @Inject constructor(
     private val visualizationGenerator: HypothesisVisualizationGenerator,
     private val zTestInputValidator: ZTestInputValidator,
     private val tTestInputValidator: TTestInputValidator,
+    private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(HypothesisUiState())
+    private val _uiState = MutableStateFlow(createInitialState())
     val uiState: StateFlow<HypothesisUiState> = _uiState.asStateFlow()
 
     fun onEvent(event: HypothesisEvent) {
@@ -46,6 +50,44 @@ class HypothesisViewModel @Inject constructor(
             }
             HypothesisEvent.Calculate -> calculate()
         }
+
+        saveRestorableState(_uiState.value)
+    }
+
+    private fun createInitialState(): HypothesisUiState {
+        val testType = restoreEnum(KEY_TEST_TYPE, HypothesisTestType.Z_TEST, HypothesisTestType::valueOf)
+        val significanceLevel = restoreEnum(KEY_SIGNIFICANCE_LEVEL, SignificanceLevel.FIVE_PERCENT, SignificanceLevel::valueOf)
+        val tailType = restoreEnum(KEY_TAIL_TYPE, TailType.TWO_TAILED, TailType::valueOf)
+
+        return HypothesisUiState(
+            selectedTestType = testType,
+            input = HypothesisInputState(
+                hypothesizedMean = savedStateHandle[KEY_HYPOTHESIZED_MEAN_TEXT] ?: "0.0",
+                hypothesizedMeanValue = savedStateHandle[KEY_HYPOTHESIZED_MEAN_VALUE] ?: 0.0,
+                sampleMean = savedStateHandle[KEY_SAMPLE_MEAN_TEXT] ?: "0.0",
+                sampleMeanValue = savedStateHandle[KEY_SAMPLE_MEAN_VALUE] ?: 0.0,
+                standardDeviation = savedStateHandle[KEY_STANDARD_DEVIATION] ?: "1.0",
+                sampleSize = savedStateHandle[KEY_SAMPLE_SIZE] ?: "30",
+            ),
+            significanceLevel = significanceLevel,
+            tailType = tailType,
+        )
+    }
+
+    private fun <T> restoreEnum(key: String, defaultValue: T, parser: (String) -> T): T {
+        return savedStateHandle.get<String>(key)?.let { runCatching { parser(it) }.getOrNull() } ?: defaultValue
+    }
+
+    private fun saveRestorableState(state: HypothesisUiState) {
+        savedStateHandle[KEY_TEST_TYPE] = state.selectedTestType.name
+        savedStateHandle[KEY_HYPOTHESIZED_MEAN_TEXT] = state.input.hypothesizedMean
+        savedStateHandle[KEY_HYPOTHESIZED_MEAN_VALUE] = state.input.hypothesizedMeanValue
+        savedStateHandle[KEY_SAMPLE_MEAN_TEXT] = state.input.sampleMean
+        savedStateHandle[KEY_SAMPLE_MEAN_VALUE] = state.input.sampleMeanValue
+        savedStateHandle[KEY_STANDARD_DEVIATION] = state.input.standardDeviation
+        savedStateHandle[KEY_SAMPLE_SIZE] = state.input.sampleSize
+        savedStateHandle[KEY_SIGNIFICANCE_LEVEL] = state.significanceLevel.name
+        savedStateHandle[KEY_TAIL_TYPE] = state.tailType.name
     }
 
     private fun changeTestType(testType: HypothesisTestType) {
@@ -217,6 +259,16 @@ class HypothesisViewModel @Inject constructor(
     private fun formatMean(value: Double): String = String.format(Locale.US, "%.1f", value)
 
     companion object {
+        private const val KEY_TEST_TYPE = "hypothesis_test_type"
+        private const val KEY_HYPOTHESIZED_MEAN_TEXT = "hypothesis_hypothesized_mean_text"
+        private const val KEY_HYPOTHESIZED_MEAN_VALUE = "hypothesis_hypothesized_mean_value"
+        private const val KEY_SAMPLE_MEAN_TEXT = "hypothesis_sample_mean_text"
+        private const val KEY_SAMPLE_MEAN_VALUE = "hypothesis_sample_mean_value"
+        private const val KEY_STANDARD_DEVIATION = "hypothesis_standard_deviation"
+        private const val KEY_SAMPLE_SIZE = "hypothesis_sample_size"
+        private const val KEY_SIGNIFICANCE_LEVEL = "hypothesis_significance_level"
+        private const val KEY_TAIL_TYPE = "hypothesis_tail_type"
+
         private val SIGNED_DECIMAL_REGEX = Regex("""-?\d*\.?\d*""")
         private val UNSIGNED_DECIMAL_REGEX = Regex("""\d*\.?\d*""")
     }
