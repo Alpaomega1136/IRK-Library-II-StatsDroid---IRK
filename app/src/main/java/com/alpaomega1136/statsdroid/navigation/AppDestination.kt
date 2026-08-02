@@ -41,6 +41,7 @@ sealed class AppDestination(
             Lookup,
             Hypothesis,
             Clt,
+            About,
         )
     }
 }
