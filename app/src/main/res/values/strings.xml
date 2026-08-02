@@ -6,4 +6,19 @@
     <string name="hypothesis_description">Compare a calculated test statistic with its critical region and determine whether the null hypothesis should be rejected.</string>
     <string name="run_hypothesis_test">Run hypothesis test</string>
     <string name="hypothesis_chart_description">Hypothesis distribution chart with rejection regions, p-value area, critical values, and calculated statistic.</string>
+    <string name="clt_title">Central Limit Theorem Visualizer</string>
+    <string name="clt_simulate">Simulate / Draw Samples</string>
+    <string name="clt_run_again">Run New Simulation</string>
+    <string name="clt_population_distribution">Original Population Distribution</string>
+    <string name="clt_sampling_distribution">Sampling Distribution of Sample Means</string>
+    <string name="clt_summary">Live Summary Metrics</string>
+    <string name="about_title">About</string>
+    <string name="about_statsdroid">About StatsDroid</string>
+    <string name="about_features">Main Features</string>
+    <string name="about_technology">Technology</string>
+    <string name="about_architecture">Architecture</string>
+    <string name="about_project_links">Project Links</string>
+    <string name="open_github_profile">Open GitHub Profile</string>
+    <string name="open_repository">Open StatsDroid Repository</string>
+    <string name="open_linkedin_profile">Open LinkedIn Profile</string>
 </resources>

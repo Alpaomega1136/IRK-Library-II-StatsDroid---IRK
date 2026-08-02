@@ -18,7 +18,7 @@ class HistogramCalculator @Inject constructor() {
         require(values.isNotEmpty()) {
             "Histogram values must not be empty."
         }
-        require(values.all(Double::isFinite)) {
+        require(values.all { it.isFinite() }) {
             "Histogram values must be finite."
         }
         require(binCount in MIN_BIN_COUNT..MAX_BIN_COUNT) {
