@@ -10,6 +10,8 @@ data class CltSimulationResult(
     val sampleMeans: List<Double>,
     val theoreticalMean: Double,
     val populationStandardDeviation: Double,
+    val populationDisplayMinimum: Double,
+    val populationDisplayMaximum: Double,
     val empiricalMean: Double,
     val empiricalSamplingStandardDeviation: Double,
     val theoreticalStandardError: Double,

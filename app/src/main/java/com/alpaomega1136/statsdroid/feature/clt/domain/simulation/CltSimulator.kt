@@ -42,6 +42,8 @@ class CltSimulator @Inject constructor(
             sampleMeans = sampleMeans,
             theoreticalMean = theoreticalMean,
             populationStandardDeviation = populationStandardDeviation,
+            populationDisplayMinimum = sampler.recommendedDisplayRange.start,
+            populationDisplayMaximum = sampler.recommendedDisplayRange.endInclusive,
             empiricalMean = empiricalMean,
             empiricalSamplingStandardDeviation = empiricalSamplingStandardDeviation,
             theoreticalStandardError = theoreticalStandardError,

@@ -1,6 +1,7 @@
 package com.alpaomega1136.statsdroid.navigation
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Search
@@ -29,11 +30,17 @@ sealed class AppDestination(
         icon = Icons.Default.Info,
     )
 
+    data object Clt : AppDestination(
+        route = "clt",
+        label = "CLT",
+        icon = Icons.Default.BarChart,
+    )
+
     companion object {
         val bottomBarItems = listOf(
             Lookup,
             Hypothesis,
-            About,
+            Clt,
         )
     }
 }
