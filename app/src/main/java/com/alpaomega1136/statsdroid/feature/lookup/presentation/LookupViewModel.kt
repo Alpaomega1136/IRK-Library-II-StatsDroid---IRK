@@ -139,12 +139,18 @@ class LookupViewModel @Inject constructor(
     }
 
     private fun changeBinomialProbability(value: Double) {
-        if (value !in BINOMIAL_PROBABILITIES) return
+        if (!value.isFinite()) return
+
+        val boundedValue = value.coerceIn(
+            MIN_BINOMIAL_PROBABILITY,
+            MAX_BINOMIAL_PROBABILITY,
+        )
+        val roundedValue = kotlin.math.round(boundedValue * 100.0) / 100.0
 
         _uiState.update { currentState ->
             currentState.copy(
                 binomialInput = currentState.binomialInput.copy(
-                    successProbability = value,
+                    successProbability = roundedValue,
                 ),
                 calculationResult = null,
             )
@@ -360,8 +366,8 @@ class LookupViewModel @Inject constructor(
         private const val KEY_NORMAL_Z_TEXT = "lookup_normal_z_text"
         private const val KEY_NORMAL_Z_VALUE = "lookup_normal_z_value"
 
-        val BINOMIAL_PROBABILITIES =
-            (1..9).map { value -> value / 10.0 }
+        private const val MIN_BINOMIAL_PROBABILITY = 0.10
+        private const val MAX_BINOMIAL_PROBABILITY = 0.90
 
         private val DECIMAL_INPUT_REGEX =
             Regex("""\d*\.?\d*""")

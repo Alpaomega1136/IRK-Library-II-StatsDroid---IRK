@@ -3,7 +3,10 @@ package com.alpaomega1136.statsdroid.feature.clt.presentation.components
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.DropdownMenu
@@ -33,7 +36,7 @@ fun CltPopulationSelector(
 
     Column(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         Text(
             text = "Population shape",
@@ -45,10 +48,13 @@ fun CltPopulationSelector(
                 onClick = { expanded = true },
                 enabled = enabled,
                 shape = SmallControlShape,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .defaultMinSize(minHeight = 58.dp),
             ) {
                 Text(
                     text = selectedShape.displayName,
+                    style = MaterialTheme.typography.titleSmall,
                     modifier = Modifier.weight(1f),
                 )
                 Icon(
@@ -60,18 +66,29 @@ fun CltPopulationSelector(
             DropdownMenu(
                 expanded = expanded && enabled,
                 onDismissRequest = { expanded = false },
+                modifier = Modifier.widthIn(
+                    min = 292.dp,
+                    max = 348.dp,
+                ),
             ) {
                 PopulationShape.entries.forEach { shape ->
                     DropdownMenuItem(
+                        modifier = Modifier.defaultMinSize(minHeight = 88.dp),
+                        contentPadding = PaddingValues(
+                            horizontal = 20.dp,
+                            vertical = 12.dp,
+                        ),
                         text = {
-                            Column {
+                            Column(
+                                verticalArrangement = Arrangement.spacedBy(6.dp),
+                            ) {
                                 Text(
                                     text = shape.displayName,
-                                    style = MaterialTheme.typography.titleSmall,
+                                    style = MaterialTheme.typography.titleMedium,
                                 )
                                 Text(
                                     text = shape.description,
-                                    style = MaterialTheme.typography.bodySmall,
+                                    style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }

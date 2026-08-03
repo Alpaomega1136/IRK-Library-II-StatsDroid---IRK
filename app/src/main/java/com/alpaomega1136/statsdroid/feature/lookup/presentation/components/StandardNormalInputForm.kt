@@ -42,10 +42,8 @@ fun StandardNormalInputForm(
                 onValueChange = { value -> onEvent(LookupEvent.NormalZTextChanged(value)) },
                 label = { Text(text = "Z-Score") },
                 placeholder = { Text(text = "-5.0 to 5.0") },
-                supportingText = {
-                    inputState.zScoreError?.let { error ->
-                        Text(text = error, color = MaterialTheme.colorScheme.error)
-                    } ?: Text(text = "Slider and manual input are synchronized.")
+                supportingText = inputState.zScoreError?.let { error ->
+                    { Text(text = error, color = MaterialTheme.colorScheme.error) }
                 },
                 isError = inputState.zScoreError != null,
                 keyboardOptions = KeyboardOptions(

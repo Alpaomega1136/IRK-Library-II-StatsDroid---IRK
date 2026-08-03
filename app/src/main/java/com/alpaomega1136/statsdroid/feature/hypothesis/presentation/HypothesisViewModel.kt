@@ -15,6 +15,8 @@ import com.alpaomega1136.statsdroid.feature.hypothesis.domain.validation.ZTestIn
 import com.alpaomega1136.statsdroid.feature.hypothesis.domain.visualization.HypothesisVisualizationGenerator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.Locale
+import kotlin.math.sqrt
+import kotlin.random.Random
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -178,18 +180,37 @@ class HypothesisViewModel @Inject constructor(
     }
 
     private fun loadWorkedExample() {
+        val random = Random.Default
+        val hypothesizedMean = random.nextInt(-60, 61).toDouble()
+        val standardDeviation = random.nextInt(20, 121) / 10.0
+        val sampleSize = random.nextInt(12, 101)
+        val statisticTarget = RANDOM_STATISTIC_TARGETS.random(random)
+        val sampleMean = (
+            hypothesizedMean +
+                statisticTarget * standardDeviation / sqrt(sampleSize.toDouble())
+            ).coerceIn(
+                HypothesisConstraints.MIN_MEAN,
+                HypothesisConstraints.MAX_MEAN,
+            )
+        val significanceLevel = SignificanceLevel.entries.random(random)
+        val tailType = TailType.entries.random(random)
+
         _uiState.update { currentState ->
             currentState.copy(
                 input = HypothesisInputState(
-                    hypothesizedMean = "50.0",
-                    hypothesizedMeanValue = 50.0,
-                    sampleMean = "52.0",
-                    sampleMeanValue = 52.0,
-                    standardDeviation = "5.0",
-                    sampleSize = "25",
+                    hypothesizedMean = formatMean(hypothesizedMean),
+                    hypothesizedMeanValue = hypothesizedMean,
+                    sampleMean = formatMean(sampleMean),
+                    sampleMeanValue = sampleMean,
+                    standardDeviation = String.format(
+                        Locale.US,
+                        "%.1f",
+                        standardDeviation,
+                    ),
+                    sampleSize = sampleSize.toString(),
                 ),
-                significanceLevel = SignificanceLevel.FIVE_PERCENT,
-                tailType = TailType.TWO_TAILED,
+                significanceLevel = significanceLevel,
+                tailType = tailType,
                 result = null,
                 visualization = null,
             )
@@ -293,5 +314,15 @@ class HypothesisViewModel @Inject constructor(
 
         private val SIGNED_DECIMAL_REGEX = Regex("""-?\d*\.?\d*""")
         private val UNSIGNED_DECIMAL_REGEX = Regex("""\d*\.?\d*""")
+        private val RANDOM_STATISTIC_TARGETS = listOf(
+            -2.6,
+            -2.1,
+            -1.5,
+            -0.8,
+            0.7,
+            1.3,
+            1.9,
+            2.4,
+        )
     }
 }

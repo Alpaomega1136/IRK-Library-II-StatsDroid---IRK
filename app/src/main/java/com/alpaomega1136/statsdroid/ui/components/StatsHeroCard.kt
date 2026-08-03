@@ -38,7 +38,6 @@ fun StatsHeroCard(
     description: String,
     icon: ImageVector,
     modifier: Modifier = Modifier,
-    badgeText: String? = null,
 ) {
     val primary = MaterialTheme.colorScheme.primary
     val secondary = MaterialTheme.colorScheme.secondary
@@ -99,7 +98,6 @@ fun StatsHeroCard(
                             Spacer(modifier = Modifier.width(StatsSpacing.Medium))
                             HeroEyebrow(
                                 eyebrow = eyebrow,
-                                badgeText = badgeText,
                                 modifier = Modifier.weight(1f),
                             )
                         }
@@ -113,10 +111,7 @@ fun StatsHeroCard(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
-                            HeroEyebrow(
-                                eyebrow = eyebrow,
-                                badgeText = badgeText,
-                            )
+                            HeroEyebrow(eyebrow = eyebrow)
                             Spacer(modifier = Modifier.height(StatsSpacing.Small))
                             HeroCopy(title = title, description = description)
                         }
@@ -133,41 +128,17 @@ fun StatsHeroCard(
 @Composable
 private fun HeroEyebrow(
     eyebrow: String,
-    badgeText: String?,
     modifier: Modifier = Modifier,
 ) {
-    Row(
+    Text(
+        text = eyebrow.uppercase(Locale.ROOT),
+        style = MaterialTheme.typography.labelSmall,
+        color = MaterialTheme.colorScheme.primary,
+        fontWeight = FontWeight.Bold,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
         modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            text = eyebrow.uppercase(Locale.ROOT),
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.primary,
-            fontWeight = FontWeight.Bold,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f, fill = false),
-        )
-
-        badgeText?.let { badge ->
-            Spacer(modifier = Modifier.width(StatsSpacing.Small))
-            Box(
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.72f))
-                    .padding(horizontal = 9.dp, vertical = 4.dp),
-            ) {
-                Text(
-                    text = badge,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.primary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-        }
-    }
+    )
 }
 
 @Composable
@@ -181,13 +152,15 @@ private fun HeroCopy(
         color = MaterialTheme.colorScheme.onSurface,
     )
 
-    Spacer(modifier = Modifier.height(StatsSpacing.Small))
+    if (description.isNotBlank()) {
+        Spacer(modifier = Modifier.height(StatsSpacing.Small))
 
-    Text(
-        text = description,
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
+        Text(
+            text = description,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
 }
 
 @Composable

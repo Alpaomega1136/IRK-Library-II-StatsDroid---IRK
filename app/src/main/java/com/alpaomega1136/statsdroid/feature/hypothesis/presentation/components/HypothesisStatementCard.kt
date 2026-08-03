@@ -35,7 +35,6 @@ fun HypothesisStatementCard(
 
     StatsSectionCard(
         title = "Hypothesis formulation",
-        subtitle = "The statements update automatically as you change the baseline and tail direction.",
         modifier = modifier,
     ) {
         BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {

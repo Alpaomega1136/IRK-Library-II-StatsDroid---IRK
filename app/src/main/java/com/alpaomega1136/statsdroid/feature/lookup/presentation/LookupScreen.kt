@@ -13,13 +13,10 @@ import androidx.compose.material.icons.filled.Functions
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import com.alpaomega1136.statsdroid.R
 import com.alpaomega1136.statsdroid.feature.lookup.presentation.components.BinomialInputForm
 import com.alpaomega1136.statsdroid.feature.lookup.presentation.components.DistributionSelector
 import com.alpaomega1136.statsdroid.feature.lookup.presentation.components.PoissonInputForm
-import com.alpaomega1136.statsdroid.feature.lookup.presentation.components.LookupQuickExamples
-import com.alpaomega1136.statsdroid.feature.lookup.presentation.components.LookupResultInsight
 import com.alpaomega1136.statsdroid.feature.lookup.presentation.components.ProbabilityResultCard
 import com.alpaomega1136.statsdroid.feature.lookup.presentation.components.StandardNormalInputForm
 import com.alpaomega1136.statsdroid.ui.components.StatsHeroCard
@@ -33,7 +30,10 @@ fun LookupScreen(
 ) {
     LazyColumn(
         modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(horizontal = StatsSpacing.Medium, vertical = StatsSpacing.Large),
+        contentPadding = PaddingValues(
+            horizontal = StatsSpacing.Medium,
+            vertical = StatsSpacing.Large,
+        ),
         verticalArrangement = Arrangement.spacedBy(StatsSpacing.Medium),
     ) {
         item {
@@ -42,7 +42,6 @@ fun LookupScreen(
                 title = stringResource(R.string.lookup_title),
                 description = stringResource(R.string.lookup_description),
                 icon = Icons.Default.Functions,
-                badgeText = uiState.selectedDistribution.displayName,
             )
         }
 
@@ -52,13 +51,6 @@ fun LookupScreen(
                 onDistributionSelected = { distribution ->
                     onEvent(LookupEvent.DistributionChanged(distribution))
                 },
-            )
-        }
-
-        item {
-            LookupQuickExamples(
-                distribution = uiState.selectedDistribution,
-                onEvent = onEvent,
             )
         }
 
@@ -95,16 +87,10 @@ fun LookupScreen(
         }
 
         item {
-            ProbabilityResultCard(probability = uiState.calculationResult)
-        }
-
-        uiState.calculationResult?.let { probability ->
-            item {
-                LookupResultInsight(
-                    distribution = uiState.selectedDistribution,
-                    probability = probability,
-                )
-            }
+            ProbabilityResultCard(
+                probability = uiState.calculationResult,
+                distribution = uiState.selectedDistribution,
+            )
         }
     }
 }

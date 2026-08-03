@@ -4,12 +4,12 @@ enum class DistributionType(
     val displayName: String,
 ) {
     BINOMIAL(
-        displayName = "Binomial Probability Sums",
+        displayName = "Binomial",
     ),
     POISSON(
-        displayName = "Poisson Probability Sums",
+        displayName = "Poisson",
     ),
     STANDARD_NORMAL(
-        displayName = "Area Under Normal Curve",
+        displayName = "Normal",
     ),
 }

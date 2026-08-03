@@ -92,7 +92,7 @@ fun <T> StatsSegmentedControl(
                         ),
                         color = contentColor,
                         textAlign = TextAlign.Center,
-                        maxLines = 2,
+                        maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }

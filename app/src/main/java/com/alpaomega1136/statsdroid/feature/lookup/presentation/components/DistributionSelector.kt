@@ -14,7 +14,6 @@ fun DistributionSelector(
 ) {
     StatsSectionCard(
         title = "Choose a distribution",
-        subtitle = "The form and visualization below adapt to the selected probability model.",
         modifier = modifier,
     ) {
         StatsSegmentedControl(

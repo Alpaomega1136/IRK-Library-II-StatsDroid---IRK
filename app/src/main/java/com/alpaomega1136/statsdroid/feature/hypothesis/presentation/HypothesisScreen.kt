@@ -42,7 +42,6 @@ fun HypothesisScreen(
                 title = stringResource(R.string.hypothesis_title),
                 description = stringResource(R.string.hypothesis_description),
                 icon = Icons.Default.CheckCircle,
-                badgeText = uiState.selectedTestType.displayName,
             )
         }
 

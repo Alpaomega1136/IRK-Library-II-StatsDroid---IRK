@@ -22,7 +22,6 @@ fun CltControlPanel(
 ) {
     StatsSectionCard(
         title = "Simulation Control Panel",
-        subtitle = "Select population shape, sample size n, and number of simulations M",
         modifier = modifier,
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(StatsSpacing.Medium)) {

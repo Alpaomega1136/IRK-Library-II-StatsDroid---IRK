@@ -36,7 +36,6 @@ fun HypothesisInputForm(
 
     StatsSectionCard(
         title = "Sample & Population Parameters",
-        subtitle = "Input observed data and population baseline",
         modifier = modifier,
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(StatsSpacing.Medium)) {
