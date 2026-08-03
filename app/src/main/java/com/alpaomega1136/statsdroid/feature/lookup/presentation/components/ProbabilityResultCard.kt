@@ -7,16 +7,12 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.alpaomega1136.statsdroid.feature.lookup.presentation.DistributionType
 import com.alpaomega1136.statsdroid.ui.components.StatsMetricCard
-import com.alpaomega1136.statsdroid.ui.components.StatsMetricGrid
-import com.alpaomega1136.statsdroid.ui.components.StatsMetricItem
 import java.util.Locale
 
 @Composable
 fun ProbabilityResultCard(
     probability: Double?,
-    distribution: DistributionType,
     modifier: Modifier = Modifier,
 ) {
     AnimatedVisibility(
@@ -26,31 +22,12 @@ fun ProbabilityResultCard(
         modifier = modifier,
     ) {
         probability?.let { value ->
-            if (distribution == DistributionType.STANDARD_NORMAL) {
-                StatsMetricCard(
-                    label = "Cumulative probability",
-                    value = String.format(Locale.US, "%.6f (%.2f%%)", value, value * 100.0),
-                    subValue = "Decimal and percentage representation",
-                    useMonospace = true,
-                )
-            } else {
-                StatsMetricGrid(
-                    items = listOf(
-                        StatsMetricItem(
-                            label = "Cumulative probability",
-                            value = String.format(Locale.US, "%.6f", value),
-                            subValue = "Decimal representation",
-                            useMonospace = true,
-                        ),
-                        StatsMetricItem(
-                            label = "Percentage",
-                            value = String.format(Locale.US, "%.2f%%", value * 100.0),
-                            subValue = "Area under the distribution",
-                            useMonospace = true,
-                        ),
-                    ),
-                )
-            }
+            StatsMetricCard(
+                label = "Cumulative probability",
+                value = String.format(Locale.US, "%.6f (%.2f%%)", value, value * 100.0),
+                subValue = "Decimal and percentage representation",
+                useMonospace = true,
+            )
         }
     }
 }

@@ -74,11 +74,30 @@ fun BinomialInputForm(
                 modifier = Modifier.fillMaxWidth(),
             )
 
+            OutlinedTextField(
+                value = inputState.successProbabilityText,
+                onValueChange = { value ->
+                    onEvent(LookupEvent.BinomialProbabilityTextChanged(value))
+                },
+                label = { Text(text = "Success probability (p)") },
+                placeholder = { Text(text = "0.10 to 0.90") },
+                supportingText = {
+                    inputState.successProbabilityError?.let { error ->
+                        Text(text = error, color = MaterialTheme.colorScheme.error)
+                    }
+                },
+                isError = inputState.successProbabilityError != null,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                singleLine = true,
+                shape = SmallControlShape,
+                modifier = Modifier.fillMaxWidth(),
+            )
+
             Column(verticalArrangement = Arrangement.spacedBy(StatsSpacing.Small)) {
                 Text(
                     text = String.format(
                         Locale.US,
-                        "Success probability (p): %.2f",
+                        "Selected p: %.2f",
                         inputState.successProbability,
                     ),
                     style = MaterialTheme.typography.labelLarge.copy(

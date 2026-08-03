@@ -14,6 +14,10 @@ sealed interface LookupEvent {
         val value: String,
     ) : LookupEvent
 
+    data class BinomialProbabilityTextChanged(
+        val value: String,
+    ) : LookupEvent
+
     data class BinomialProbabilityChanged(
         val value: Double,
     ) : LookupEvent

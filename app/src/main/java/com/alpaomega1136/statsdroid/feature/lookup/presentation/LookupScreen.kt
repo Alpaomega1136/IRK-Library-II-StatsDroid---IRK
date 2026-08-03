@@ -87,10 +87,7 @@ fun LookupScreen(
         }
 
         item {
-            ProbabilityResultCard(
-                probability = uiState.calculationResult,
-                distribution = uiState.selectedDistribution,
-            )
+            ProbabilityResultCard(probability = uiState.calculationResult)
         }
     }
 }
