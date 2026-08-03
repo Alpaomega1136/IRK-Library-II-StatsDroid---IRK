@@ -1,6 +1,7 @@
 package com.alpaomega1136.statsdroid.navigation
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Info
@@ -24,6 +25,12 @@ sealed class AppDestination(
         icon = Icons.Default.CheckCircle,
     )
 
+    data object Reference : AppDestination(
+        route = "reference",
+        label = "Reference",
+        icon = Icons.AutoMirrored.Filled.MenuBook,
+    )
+
     data object About : AppDestination(
         route = "about",
         label = "About",
@@ -41,6 +48,7 @@ sealed class AppDestination(
             Lookup,
             Hypothesis,
             Clt,
+            Reference,
             About,
         )
     }

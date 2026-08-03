@@ -1,0 +1,103 @@
+{
+  "materials": [
+    {
+      "id": "probstat-01-introduction",
+      "title": "1. Introduction to Statistics",
+      "description": "Materi pengantar statistik untuk perkuliahan Probstat.",
+      "sourceName": "Materi Perkuliahan Probstat",
+      "academicYear": "",
+      "fileType": "PDF",
+      "assetPath": "reference/probstat/1-Introduction_to_Statistics.pdf"
+    },
+    {
+      "id": "probstat-02-probabilitas",
+      "title": "2. Probabilitas",
+      "description": "Materi probabilitas dasar untuk perkuliahan Probstat.",
+      "sourceName": "Materi Perkuliahan Probstat",
+      "academicYear": "",
+      "fileType": "PDF",
+      "assetPath": "reference/probstat/2-Probabilitas.pdf"
+    },
+    {
+      "id": "probstat-03-var-random",
+      "title": "3. Variabel Random",
+      "description": "Materi variabel random untuk perkuliahan Probstat.",
+      "sourceName": "Materi Perkuliahan Probstat",
+      "academicYear": "",
+      "fileType": "PDF",
+      "assetPath": "reference/probstat/3-Var-Random.pdf"
+    },
+    {
+      "id": "probstat-04-nilai-ekspektasi",
+      "title": "4. Nilai Ekspektasi",
+      "description": "Materi nilai ekspektasi untuk perkuliahan Probstat.",
+      "sourceName": "Materi Perkuliahan Probstat",
+      "academicYear": "",
+      "fileType": "PDF",
+      "assetPath": "reference/probstat/4-Nilai-Ekspektasi.pdf"
+    },
+    {
+      "id": "probstat-05-distribusi-diskrit",
+      "title": "5. Distribusi Diskrit",
+      "description": "Materi distribusi diskrit untuk perkuliahan Probstat.",
+      "sourceName": "Materi Perkuliahan Probstat",
+      "academicYear": "",
+      "fileType": "PDF",
+      "assetPath": "reference/probstat/5-Distribusi-Diskrit.pdf"
+    },
+    {
+      "id": "probstat-06-distribusi-kontinu",
+      "title": "6. Distribusi Kontinu",
+      "description": "Materi distribusi kontinu untuk perkuliahan Probstat.",
+      "sourceName": "Materi Perkuliahan Probstat",
+      "academicYear": "",
+      "fileType": "PDF",
+      "assetPath": "reference/probstat/6-Distribusi-Kontinu.pdf"
+    },
+    {
+      "id": "probstat-08-distribusi-sampel",
+      "title": "8. Distribusi Sampel",
+      "description": "Materi distribusi sampel untuk perkuliahan Probstat.",
+      "sourceName": "Materi Perkuliahan Probstat",
+      "academicYear": "",
+      "fileType": "PDF",
+      "assetPath": "reference/probstat/8-Distribusi-Sampel.pdf"
+    },
+    {
+      "id": "probstat-08-sampling",
+      "title": "8. Sampling",
+      "description": "Materi sampling untuk perkuliahan Probstat.",
+      "sourceName": "Materi Perkuliahan Probstat",
+      "academicYear": "",
+      "fileType": "PDF",
+      "assetPath": "reference/probstat/8-Sampling.pdf"
+    },
+    {
+      "id": "probstat-09-penaksir",
+      "title": "9. Penaksir",
+      "description": "Materi penaksir untuk perkuliahan Probstat.",
+      "sourceName": "Materi Perkuliahan Probstat",
+      "academicYear": "",
+      "fileType": "PDF",
+      "assetPath": "reference/probstat/9-Penaksir.pdf"
+    },
+    {
+      "id": "probstat-10-tes-hipotesa",
+      "title": "10. Tes Hipotesa",
+      "description": "Materi tes hipotesa untuk perkuliahan Probstat.",
+      "sourceName": "Materi Perkuliahan Probstat",
+      "academicYear": "",
+      "fileType": "PDF",
+      "assetPath": "reference/probstat/10-Tes-Hipotesa.pdf"
+    },
+    {
+      "id": "probstat-11-regression-correlation",
+      "title": "11. Simple Linear Regression and Correlation",
+      "description": "Materi regresi linear sederhana dan korelasi untuk perkuliahan Probstat.",
+      "sourceName": "Materi Perkuliahan Probstat",
+      "academicYear": "",
+      "fileType": "PDF",
+      "assetPath": "reference/probstat/11-Simple-Linear-Regression--Correlation.pdf"
+    }
+  ]
+}

@@ -9,6 +9,7 @@ import com.alpaomega1136.statsdroid.feature.about.presentation.AboutRoute
 import com.alpaomega1136.statsdroid.feature.clt.presentation.CltRoute
 import com.alpaomega1136.statsdroid.feature.hypothesis.presentation.HypothesisRoute
 import com.alpaomega1136.statsdroid.feature.lookup.presentation.LookupRoute
+import com.alpaomega1136.statsdroid.feature.reference.presentation.ReferenceRoute
 
 @Composable
 fun StatsDroidNavHost(
@@ -30,6 +31,10 @@ fun StatsDroidNavHost(
 
         composable(route = AppDestination.Clt.route) {
             CltRoute()
+        }
+
+        composable(route = AppDestination.Reference.route) {
+            ReferenceRoute()
         }
 
         composable(route = AppDestination.About.route) {
