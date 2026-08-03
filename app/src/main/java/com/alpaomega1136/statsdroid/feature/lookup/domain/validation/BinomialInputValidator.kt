@@ -36,9 +36,12 @@ class BinomialInputValidator @Inject constructor() {
                     "Success threshold cannot exceed number of trials."
         }
 
-        if (successProbability !in ALLOWED_PROBABILITIES) {
+        if (
+            !successProbability.isFinite() ||
+            successProbability !in MIN_PROBABILITY..MAX_PROBABILITY
+        ) {
             errors[LookupInputField.BINOMIAL_PROBABILITY] =
-                "Success probability must be between 0.1 and 0.9."
+                "Success probability must be between 0.10 and 0.90."
         }
 
         if (errors.isNotEmpty()) return LookupValidationResult.Invalid(errors)
@@ -55,6 +58,7 @@ class BinomialInputValidator @Inject constructor() {
     companion object {
         private const val MIN_TRIALS = 1
         private const val MAX_TRIALS = 20
-        private val ALLOWED_PROBABILITIES = (1..9).map { value -> value / 10.0 }
+        private const val MIN_PROBABILITY = 0.10
+        private const val MAX_PROBABILITY = 0.90
     }
 }

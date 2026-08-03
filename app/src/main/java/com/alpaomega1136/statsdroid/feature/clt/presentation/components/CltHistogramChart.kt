@@ -1,24 +1,24 @@
 package com.alpaomega1136.statsdroid.feature.clt.presentation.components
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.semantics.contentDescription
@@ -26,6 +26,10 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.alpaomega1136.statsdroid.core.statistics.model.DensityCurvePoint
 import com.alpaomega1136.statsdroid.core.statistics.model.HistogramData
+import com.alpaomega1136.statsdroid.ui.components.LegendItem
+import com.alpaomega1136.statsdroid.ui.components.StatsChartLegend
+import com.alpaomega1136.statsdroid.ui.components.StatsSectionCard
+import com.alpaomega1136.statsdroid.ui.theme.StatsSpacing
 import java.util.Locale
 
 @Composable
@@ -36,23 +40,33 @@ fun CltHistogramChart(
     modifier: Modifier = Modifier,
     theoreticalCurve: List<DensityCurvePoint> = emptyList(),
 ) {
-    val barColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.55f)
-    val curveColor = MaterialTheme.colorScheme.error
+    val barColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.65f)
+    val curveColor = MaterialTheme.colorScheme.tertiary
     val axisColor = MaterialTheme.colorScheme.outline
 
-    Card(modifier = modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(text = title, style = MaterialTheme.typography.titleMedium)
-            Text(
-                text = description,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+    var isChartVisible by remember { mutableStateOf(false) }
 
+    LaunchedEffect(histogram) {
+        isChartVisible = false
+        isChartVisible = true
+    }
+
+    val animationProgress by animateFloatAsState(
+        targetValue = if (isChartVisible) 1f else 0f,
+        animationSpec = tween(durationMillis = 500),
+        label = "histogram_reveal",
+    )
+
+    StatsSectionCard(
+        title = title,
+        subtitle = description,
+        modifier = modifier,
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(StatsSpacing.Small)) {
             Canvas(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(240.dp)
+                    .height(220.dp)
                     .semantics {
                         contentDescription = "$title. Contains ${histogram.totalCount} observations across ${histogram.bins.size} bins."
                     },
@@ -91,20 +105,22 @@ fun CltHistogramChart(
                 val gap = minOf(2.dp.toPx(), binWidthInPixels * 0.12f)
 
                 histogram.bins.forEachIndexed { index, bin ->
-                    val barHeight = (baselineY - yCoordinate(bin.density)).coerceAtLeast(0f)
+                    val fullBarHeight = (baselineY - yCoordinate(bin.density)).coerceAtLeast(0f)
+                    val animatedHeight = fullBarHeight * animationProgress
                     val width = (binWidthInPixels - gap).coerceAtLeast(1f)
+
                     drawRect(
                         color = barColor,
                         topLeft = Offset(
                             x = leftPadding + index * binWidthInPixels + gap / 2f,
-                            y = baselineY - barHeight,
+                            y = baselineY - animatedHeight,
                         ),
-                        size = Size(width = width, height = barHeight),
+                        size = Size(width = width, height = animatedHeight),
                     )
                 }
 
                 val visibleCurvePoints = theoreticalCurve.filter { it.x in histogram.range.minimum..histogram.range.maximum }
-                if (visibleCurvePoints.size >= 2) {
+                if (visibleCurvePoints.size >= 2 && animationProgress > 0.3f) {
                     val curvePath = Path().apply {
                         visibleCurvePoints.forEachIndexed { index, point ->
                             val x = xCoordinate(point.x)
@@ -122,11 +138,13 @@ fun CltHistogramChart(
                 Text(text = formatAxisValue(histogram.range.maximum), style = MaterialTheme.typography.labelSmall)
             }
 
-            HistogramLegend(
-                barColor = barColor,
-                curveColor = curveColor,
-                showTheoreticalCurve = theoreticalCurve.isNotEmpty(),
+            val legendItems = mutableListOf(
+                LegendItem(label = "Empirical density", color = barColor),
             )
+            if (theoreticalCurve.isNotEmpty()) {
+                legendItems.add(LegendItem(label = "Theoretical normal curve", color = curveColor))
+            }
+            StatsChartLegend(items = legendItems)
 
             Text(
                 text = "Observations: ${histogram.totalCount} | Bins: ${histogram.bins.size}",
@@ -134,32 +152,6 @@ fun CltHistogramChart(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-    }
-}
-
-@Composable
-private fun HistogramLegend(
-    barColor: Color,
-    curveColor: Color,
-    showTheoreticalCurve: Boolean,
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        LegendItem(color = barColor, label = "Empirical density")
-        if (showTheoreticalCurve) {
-            LegendItem(color = curveColor, label = "Theoretical normal curve")
-        }
-    }
-}
-
-@Composable
-private fun LegendItem(color: Color, label: String) {
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        Box(
-            modifier = Modifier
-                .size(12.dp)
-                .background(color = color, shape = RoundedCornerShape(2.dp)),
-        )
-        Text(text = label, style = MaterialTheme.typography.bodySmall)
     }
 }
 

@@ -1,6 +1,7 @@
 package com.alpaomega1136.statsdroid.feature.lookup.presentation.components
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,7 +14,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import java.util.Locale
 import com.alpaomega1136.statsdroid.core.statistics.model.NormalCurvePoint
 
 @Composable
@@ -21,18 +26,45 @@ fun StandardNormalCurve(
     points: List<NormalCurvePoint>,
     selectedZScore: Double,
     modifier: Modifier = Modifier,
+    onZScoreSelected: ((Double) -> Unit)? = null,
 ) {
     val curveColor = MaterialTheme.colorScheme.primary
     val shadedAreaColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.28f)
     val axisColor = MaterialTheme.colorScheme.outline
     val centerLineColor = MaterialTheme.colorScheme.outlineVariant
     val markerColor = MaterialTheme.colorScheme.error
+    val minimumZ = points.firstOrNull()?.zScore ?: -5.0
+    val maximumZ = points.lastOrNull()?.zScore ?: 5.0
 
     Column(modifier = modifier) {
         Canvas(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(220.dp),
+                .height(220.dp)
+                .semantics {
+                    contentDescription = String.format(
+                        Locale.US,
+                        "Interactive standard normal curve. Tap the chart to move the z marker. Current z is %.2f.",
+                        selectedZScore,
+                    )
+                }
+                .pointerInput(minimumZ, maximumZ, onZScoreSelected) {
+                    val selectionHandler = onZScoreSelected ?: return@pointerInput
+
+                    detectTapGestures { offset ->
+                        val leftPadding = 16.dp.toPx()
+                        val rightPadding = 16.dp.toPx()
+                        val graphWidth =
+                            (size.width.toFloat() - leftPadding - rightPadding).coerceAtLeast(1f)
+                        val boundedX = offset.x.coerceIn(
+                            minimumValue = leftPadding,
+                            maximumValue = size.width.toFloat() - rightPadding,
+                        )
+                        val fraction = (boundedX - leftPadding) / graphWidth
+                        val selected = minimumZ + fraction * (maximumZ - minimumZ)
+                        selectionHandler(selected.coerceIn(minimumZ, maximumZ))
+                    }
+                },
         ) {
             if (points.size < 2) return@Canvas
 
@@ -43,8 +75,6 @@ fun StandardNormalCurve(
             val graphWidth = size.width - leftPadding - rightPadding
             val baselineY = size.height - bottomPadding
             val graphHeight = baselineY - topPadding
-            val minimumZ = points.first().zScore
-            val maximumZ = points.last().zScore
             val maximumDensity = points.maxOf { point -> point.density }
 
             fun xCoordinate(zScore: Double): Float {
@@ -131,7 +161,7 @@ fun StandardNormalCurve(
             )
             drawCircle(
                 color = markerColor,
-                radius = 4.dp.toPx(),
+                radius = 5.dp.toPx(),
                 center = Offset(x = markerX, y = markerY),
             )
         }
@@ -141,7 +171,7 @@ fun StandardNormalCurve(
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             Text(text = "-5", style = MaterialTheme.typography.labelSmall)
-            Text(text = "0", style = MaterialTheme.typography.labelSmall)
+            Text(text = "Tap chart to select z", style = MaterialTheme.typography.labelSmall)
             Text(text = "5", style = MaterialTheme.typography.labelSmall)
         }
     }

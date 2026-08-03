@@ -5,9 +5,11 @@ import com.alpaomega1136.statsdroid.core.statistics.model.NormalCurvePoint
 data class BinomialInputState(
     val numberOfTrials: String = "",
     val threshold: String = "",
+    val successProbabilityText: String = "0.50",
     val successProbability: Double = 0.5,
     val numberOfTrialsError: String? = null,
     val thresholdError: String? = null,
+    val successProbabilityError: String? = null,
 )
 
 data class PoissonInputState(

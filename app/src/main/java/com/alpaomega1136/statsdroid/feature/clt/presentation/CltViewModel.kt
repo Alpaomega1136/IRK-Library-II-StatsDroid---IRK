@@ -28,6 +28,16 @@ class CltViewModel @Inject constructor(
     val uiState: StateFlow<CltUiState> = _uiState.asStateFlow()
 
     private var simulationJob: Job? = null
+    private var requestGeneration: Long = 0L
+
+    private fun currentRequest(): CltSimulationRequest {
+        val state = _uiState.value
+        return CltSimulationRequest(
+            populationShape = state.selectedPopulationShape,
+            sampleSize = state.sampleSize,
+            simulationCount = state.simulationCount,
+        )
+    }
 
     fun onEvent(event: CltEvent) {
         when (event) {
@@ -52,22 +62,31 @@ class CltViewModel @Inject constructor(
 
     private fun runSimulation() {
         simulationJob?.cancel()
-        val currentState = _uiState.value
-        val request = CltSimulationRequest(
-            populationShape = currentState.selectedPopulationShape,
-            sampleSize = currentState.sampleSize,
-            simulationCount = currentState.simulationCount,
-        )
+
+        val request = currentRequest()
+        val generation = ++requestGeneration
 
         simulationJob = viewModelScope.launch {
             _uiState.update { it.copy(isRunning = true, errorMessage = null) }
 
             try {
                 val result = repository.runSimulation(request)
+
+                val requestIsStillCurrent = request == currentRequest()
+                val generationIsStillCurrent = generation == requestGeneration
+
+                if (!requestIsStillCurrent || !generationIsStillCurrent) {
+                    return@launch
+                }
+
                 _uiState.update { it.copy(isRunning = false, result = result, errorMessage = null) }
             } catch (cancellation: CancellationException) {
                 throw cancellation
             } catch (exception: Exception) {
+                if (generation != requestGeneration) {
+                    return@launch
+                }
+
                 _uiState.update {
                     it.copy(
                         isRunning = false,

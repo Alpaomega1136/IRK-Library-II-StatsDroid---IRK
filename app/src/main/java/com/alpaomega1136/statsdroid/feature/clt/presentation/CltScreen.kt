@@ -1,21 +1,32 @@
 package com.alpaomega1136.statsdroid.feature.clt.presentation
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Card
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import com.alpaomega1136.statsdroid.R
 import com.alpaomega1136.statsdroid.feature.clt.presentation.components.CltControlPanel
 import com.alpaomega1136.statsdroid.feature.clt.presentation.components.CltHistogramChart
 import com.alpaomega1136.statsdroid.feature.clt.presentation.components.CltSummaryCard
+import com.alpaomega1136.statsdroid.ui.components.StatsHeroCard
+import com.alpaomega1136.statsdroid.ui.components.StatsSectionCard
+import com.alpaomega1136.statsdroid.ui.theme.StatsMotion
+import com.alpaomega1136.statsdroid.ui.theme.StatsSpacing
 import java.util.Locale
 
 @Composable
@@ -24,60 +35,81 @@ fun CltScreen(
     onEvent: (CltEvent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val previousResultAlpha by animateFloatAsState(
+        targetValue = if (uiState.isRunning) 0.56f else 1f,
+        animationSpec = StatsMotion.FastFloatSpec,
+        label = "clt_previous_result_alpha",
+    )
+
     LazyColumn(
         modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 24.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp),
+        contentPadding = PaddingValues(
+            horizontal = StatsSpacing.Medium,
+            vertical = StatsSpacing.Large,
+        ),
+        verticalArrangement = Arrangement.spacedBy(StatsSpacing.Medium),
     ) {
         item {
-            Text(text = stringResource(R.string.clt_title), style = MaterialTheme.typography.headlineMedium)
-        }
-
-        item {
-            Text(
-                text = "Draw repeated random samples and observe how the distribution of their means approaches a normal distribution.",
-                style = MaterialTheme.typography.bodyLarge,
+            StatsHeroCard(
+                eyebrow = "Sampling laboratory",
+                title = stringResource(R.string.clt_title),
+                description = "Draw repeated random samples and watch the distribution of their means approach a normal curve.",
+                icon = Icons.Default.BarChart,
             )
         }
 
         item {
-            CltControlPanel(uiState = uiState, onEvent = onEvent)
+            CltControlPanel(
+                uiState = uiState,
+                onEvent = onEvent,
+            )
         }
 
-        uiState.errorMessage?.let { errorMessage ->
+        item {
+            AnimatedVisibility(
+                visible = uiState.isRunning,
+                enter = fadeIn(),
+                exit = fadeOut(),
+            ) {
+                StatsSectionCard(
+                    title = "Simulation in progress",
+                    subtitle = "Drawing ${uiState.simulationCount.displayName} samples.",
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(StatsSpacing.Small)) {
+                        LinearProgressIndicator()
+                        Text(
+                            text = "The previous result remains visible until the new simulation is complete.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            }
+        }
+
+        uiState.errorMessage?.let { message ->
             item {
-                Card {
+                StatsSectionCard(
+                    title = "Simulation could not be completed",
+                ) {
                     Text(
-                        text = errorMessage,
-                        modifier = Modifier.padding(16.dp),
+                        text = message,
+                        style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.error,
                     )
                 }
             }
         }
 
-        val result = uiState.result
-
-        if (result == null && !uiState.isRunning) {
-            item {
-                Card {
-                    Text(
-                        text = "Configure the simulation, then press \"Simulate / Draw Samples\" to generate the population and sampling distributions.",
-                        modifier = Modifier.padding(16.dp),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
-            }
-        }
-
-        result?.let { visualization ->
+        uiState.result?.let { visualization ->
             val simulation = visualization.simulation
 
             item {
                 CltHistogramChart(
                     title = "1. ${stringResource(R.string.clt_population_distribution)}",
-                    description = "Original ${simulation.populationShape.displayName} population with mean = ${formatShort(simulation.theoreticalMean)} and std dev = ${formatShort(simulation.populationStandardDeviation)}.",
+                    description = "${simulation.populationShape.displayName} population with μ = ${formatShort(simulation.theoreticalMean)} and σ = ${formatShort(simulation.populationStandardDeviation)}.",
                     histogram = visualization.populationHistogram,
+                    modifier = Modifier.alpha(previousResultAlpha),
                 )
             }
 
@@ -87,14 +119,20 @@ fun CltScreen(
                     description = "${simulation.numberOfSamples} sample means, each calculated from n = ${simulation.sampleSize} observations.",
                     histogram = visualization.samplingDistributionHistogram,
                     theoreticalCurve = simulation.theoreticalNormalCurve,
+                    modifier = Modifier.alpha(previousResultAlpha),
                 )
             }
 
             item {
-                CltSummaryCard(result = simulation)
+                CltSummaryCard(
+                    result = simulation,
+                    modifier = Modifier.alpha(previousResultAlpha),
+                )
             }
         }
     }
 }
 
-private fun formatShort(value: Double): String = String.format(Locale.US, "%.4f", value)
+private fun formatShort(
+    value: Double,
+): String = String.format(Locale.US, "%.4f", value)

@@ -1,90 +1,124 @@
 package com.alpaomega1136.statsdroid.feature.hypothesis.presentation.components
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import com.alpaomega1136.statsdroid.feature.hypothesis.domain.model.CriticalValues
-import com.alpaomega1136.statsdroid.feature.hypothesis.domain.model.HypothesisDecision
 import com.alpaomega1136.statsdroid.feature.hypothesis.domain.model.HypothesisTestResult
 import com.alpaomega1136.statsdroid.feature.hypothesis.domain.model.HypothesisTestType
+import com.alpaomega1136.statsdroid.ui.components.StatsDecisionBanner
+import com.alpaomega1136.statsdroid.ui.components.StatsMetricGrid
+import com.alpaomega1136.statsdroid.ui.components.StatsMetricItem
+import com.alpaomega1136.statsdroid.ui.theme.StatsSpacing
 import java.util.Locale
 
 @Composable
 fun HypothesisResultCard(
-    result: HypothesisTestResult,
+    result: HypothesisTestResult?,
     modifier: Modifier = Modifier,
 ) {
-    val containerColor = when (result.decision) {
-        HypothesisDecision.REJECT_NULL -> MaterialTheme.colorScheme.errorContainer
-        HypothesisDecision.FAIL_TO_REJECT_NULL -> MaterialTheme.colorScheme.secondaryContainer
-    }
-    val statisticLabel = when (result.testType) {
-        HypothesisTestType.Z_TEST -> "Z-score"
-        HypothesisTestType.T_TEST -> "t-score"
-    }
-
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = containerColor),
+    AnimatedVisibility(
+        visible = result != null,
+        enter = fadeIn() + slideInVertically { it / 6 },
+        exit = fadeOut() + slideOutVertically { it / 6 },
+        modifier = modifier,
     ) {
-        Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(text = "Test Result", style = MaterialTheme.typography.titleLarge)
-            Text(text = result.decision.displayName, style = MaterialTheme.typography.headlineSmall)
-            HorizontalDivider()
-            ResultLine(label = "Test type", value = result.testType.displayName)
-            ResultLine(label = statisticLabel, value = formatNumber(result.testStatistic))
-            ResultLine(label = "p-value", value = formatProbability(result.pValue))
-            ResultLine(label = "Significance level", value = formatNumber(result.significanceLevel))
-            ResultLine(label = "Critical value", value = formatCriticalValues(result.criticalValues))
-            result.degreesOfFreedom?.let { ResultLine(label = "Degrees of freedom", value = it.toString()) }
-            HorizontalDivider()
-            Text(
-                text = if (result.decision == HypothesisDecision.REJECT_NULL) {
-                    "The p-value is less than or equal to alpha, so there is sufficient evidence to reject H0."
-                } else {
-                    "The p-value is greater than alpha, so there is insufficient evidence to reject H0."
-                },
-                style = MaterialTheme.typography.bodyMedium,
-            )
+        result?.let { testResult ->
+            val statisticLabel = when (testResult.testType) {
+                HypothesisTestType.Z_TEST -> "Z statistic"
+                HypothesisTestType.T_TEST -> "t statistic"
+            }
+
+            val metrics = buildList {
+                add(
+                    StatsMetricItem(
+                        label = statisticLabel,
+                        value = String.format(Locale.US, "%.4f", testResult.testStatistic),
+                        subValue = testResult.testType.displayName,
+                        useMonospace = true,
+                    ),
+                )
+                add(
+                    StatsMetricItem(
+                        label = "p-value",
+                        value = formatProbability(testResult.pValue),
+                        subValue = "Probability of an equally or more extreme result",
+                        useMonospace = true,
+                    ),
+                )
+                add(
+                    StatsMetricItem(
+                        label = "Critical value(s)",
+                        value = formatCriticalValues(testResult.criticalValues),
+                        subValue = "Boundary of the rejection region",
+                        useMonospace = true,
+                    ),
+                )
+
+                testResult.degreesOfFreedom?.let { degreesOfFreedom ->
+                    add(
+                        StatsMetricItem(
+                            label = "Degrees of freedom",
+                            value = degreesOfFreedom.toString(),
+                            subValue = "df = n - 1",
+                            useMonospace = true,
+                        ),
+                    )
+                } ?: add(
+                    StatsMetricItem(
+                        label = "Significance level (α)",
+                        value = String.format(Locale.US, "%.2f", testResult.significanceLevel),
+                        subValue = "Decision threshold",
+                        useMonospace = true,
+                    ),
+                )
+            }
+
+            Column(
+                verticalArrangement = Arrangement.spacedBy(StatsSpacing.Medium),
+            ) {
+                StatsDecisionBanner(
+                    decision = testResult.decision,
+                    pValue = testResult.pValue,
+                    significanceLevel = testResult.significanceLevel,
+                )
+
+                StatsMetricGrid(items = metrics)
+            }
         }
     }
 }
 
-@Composable
-private fun ResultLine(label: String, value: String) {
-    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Text(text = label, style = MaterialTheme.typography.labelMedium)
-        Text(text = value, style = MaterialTheme.typography.bodyLarge)
-    }
-}
-
-private fun formatCriticalValues(criticalValues: CriticalValues): String {
+private fun formatCriticalValues(
+    criticalValues: CriticalValues,
+): String {
     val lower = criticalValues.lower
     val upper = criticalValues.upper
 
     return when {
-        lower != null && upper != null -> "${formatNumber(lower)} and ${formatNumber(upper)}"
-        lower != null -> formatNumber(lower)
-        upper != null -> formatNumber(upper)
+        lower != null && upper != null -> "${formatShort(lower)} / ${formatShort(upper)}"
+        lower != null -> formatShort(lower)
+        upper != null -> formatShort(upper)
         else -> "-"
     }
 }
 
-private fun formatProbability(value: Double): String {
-    return if (value in 0.0..<0.000001) {
-        String.format(Locale.US, "%.4e", value)
+private fun formatProbability(
+    value: Double,
+): String {
+    return if (value in 0.0..<0.0001) {
+        String.format(Locale.US, "%.3e", value)
     } else {
-        String.format(Locale.US, "%.8f", value)
+        String.format(Locale.US, "%.4f", value)
     }
 }
 
-private fun formatNumber(value: Double): String = String.format(Locale.US, "%.6f", value)
+private fun formatShort(
+    value: Double,
+): String = String.format(Locale.US, "%.3f", value)

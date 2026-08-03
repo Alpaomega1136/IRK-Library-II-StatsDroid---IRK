@@ -1,50 +1,32 @@
 package com.alpaomega1136.statsdroid.feature.lookup.presentation.components
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Card
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import com.alpaomega1136.statsdroid.ui.components.StatsMetricCard
 import java.util.Locale
 
 @Composable
 fun ProbabilityResultCard(
-    probability: Double,
+    probability: Double?,
     modifier: Modifier = Modifier,
 ) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
+    AnimatedVisibility(
+        visible = probability != null,
+        enter = fadeIn() + slideInVertically { it / 6 },
+        exit = fadeOut() + slideOutVertically { it / 6 },
+        modifier = modifier,
     ) {
-        Column(
-            modifier = Modifier.padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Text(
-                text = "Cumulative Probability",
-                style = MaterialTheme.typography.titleMedium,
-            )
-
-            Text(
-                text = String.format(
-                    Locale.US,
-                    "%.8f",
-                    probability,
-                ),
-                style = MaterialTheme.typography.headlineMedium,
-            )
-
-            Text(
-                text = String.format(
-                    Locale.US,
-                    "%.4f%%",
-                    probability * 100.0,
-                ),
-                style = MaterialTheme.typography.bodyLarge,
+        probability?.let { value ->
+            StatsMetricCard(
+                label = "Cumulative probability",
+                value = String.format(Locale.US, "%.6f (%.2f%%)", value, value * 100.0),
+                subValue = "Decimal and percentage representation",
+                useMonospace = true,
             )
         }
     }

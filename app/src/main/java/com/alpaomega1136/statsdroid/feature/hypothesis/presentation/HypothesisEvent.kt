@@ -14,5 +14,6 @@ sealed interface HypothesisEvent {
     data class SampleSizeChanged(val value: String) : HypothesisEvent
     data class SignificanceLevelChanged(val significanceLevel: SignificanceLevel) : HypothesisEvent
     data class TailTypeChanged(val tailType: TailType) : HypothesisEvent
+    data object LoadWorkedExample : HypothesisEvent
     data object Calculate : HypothesisEvent
 }

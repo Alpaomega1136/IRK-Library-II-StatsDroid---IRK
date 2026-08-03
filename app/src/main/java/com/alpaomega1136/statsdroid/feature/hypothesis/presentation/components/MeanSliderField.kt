@@ -31,7 +31,9 @@ fun MeanSliderField(
             onValueChange = onTextChanged,
             label = { Text(text = label) },
             placeholder = { Text(text = "-100.0 to 100.0") },
-            supportingText = { Text(text = errorMessage ?: "Manual input and slider are synchronized.") },
+            supportingText = errorMessage?.let { error ->
+                { Text(text = error, color = MaterialTheme.colorScheme.error) }
+            },
             isError = errorMessage != null,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             singleLine = true,

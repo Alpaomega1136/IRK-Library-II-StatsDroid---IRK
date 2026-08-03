@@ -39,6 +39,9 @@ class LookupViewModel @Inject constructor(
             is LookupEvent.BinomialThresholdChanged ->
                 changeBinomialThreshold(event.value)
 
+            is LookupEvent.BinomialProbabilityTextChanged ->
+                changeBinomialProbabilityText(event.value)
+
             is LookupEvent.BinomialProbabilityChanged ->
                 changeBinomialProbability(event.value)
 
@@ -67,12 +70,17 @@ class LookupViewModel @Inject constructor(
             ?.let { runCatching { DistributionType.valueOf(it) }.getOrNull() }
             ?: DistributionType.BINOMIAL
 
+        val probabilityValue = savedStateHandle[KEY_BINOMIAL_PROBABILITY] ?: 0.5
+        val probabilityText = savedStateHandle[KEY_BINOMIAL_PROBABILITY_TEXT]
+            ?: String.format(Locale.US, "%.2f", probabilityValue)
+
         return LookupUiState(
             selectedDistribution = selectedDistribution,
             binomialInput = BinomialInputState(
                 numberOfTrials = savedStateHandle[KEY_BINOMIAL_TRIALS] ?: "",
                 threshold = savedStateHandle[KEY_BINOMIAL_THRESHOLD] ?: "",
-                successProbability = savedStateHandle[KEY_BINOMIAL_PROBABILITY] ?: 0.5,
+                successProbabilityText = probabilityText,
+                successProbability = probabilityValue,
             ),
             poissonInput = PoissonInputState(
                 averageRate = savedStateHandle[KEY_POISSON_RATE] ?: "",
@@ -95,6 +103,7 @@ class LookupViewModel @Inject constructor(
         savedStateHandle[KEY_BINOMIAL_TRIALS] = state.binomialInput.numberOfTrials
         savedStateHandle[KEY_BINOMIAL_THRESHOLD] = state.binomialInput.threshold
         savedStateHandle[KEY_BINOMIAL_PROBABILITY] = state.binomialInput.successProbability
+        savedStateHandle[KEY_BINOMIAL_PROBABILITY_TEXT] = state.binomialInput.successProbabilityText
         savedStateHandle[KEY_POISSON_RATE] = state.poissonInput.averageRate
         savedStateHandle[KEY_POISSON_THRESHOLD] = state.poissonInput.threshold
         savedStateHandle[KEY_NORMAL_Z_TEXT] = state.normalInput.zScoreText
@@ -138,13 +147,46 @@ class LookupViewModel @Inject constructor(
         }
     }
 
-    private fun changeBinomialProbability(value: Double) {
-        if (value !in BINOMIAL_PROBABILITIES) return
+    private fun changeBinomialProbabilityText(value: String) {
+        if (!isValidDecimalInput(value)) return
+
+        val parsedValue = value.toDoubleOrNull()
 
         _uiState.update { currentState ->
             currentState.copy(
                 binomialInput = currentState.binomialInput.copy(
-                    successProbability = value,
+                    successProbabilityText = value,
+                    successProbability = if (
+                        parsedValue != null &&
+                        parsedValue in MIN_BINOMIAL_PROBABILITY..MAX_BINOMIAL_PROBABILITY
+                    ) {
+                        parsedValue
+                    } else {
+                        currentState.binomialInput.successProbability
+                    },
+                    successProbabilityError = null,
+                ),
+                calculationResult = null,
+            )
+        }
+    }
+
+    private fun changeBinomialProbability(value: Double) {
+        if (!value.isFinite()) return
+
+        val boundedValue = value.coerceIn(
+            MIN_BINOMIAL_PROBABILITY,
+            MAX_BINOMIAL_PROBABILITY,
+        )
+        val roundedValue = kotlin.math.round(boundedValue * 100.0) / 100.0
+        val formattedText = String.format(Locale.US, "%.2f", roundedValue)
+
+        _uiState.update { currentState ->
+            currentState.copy(
+                binomialInput = currentState.binomialInput.copy(
+                    successProbabilityText = formattedText,
+                    successProbability = roundedValue,
+                    successProbabilityError = null,
                 ),
                 calculationResult = null,
             )
@@ -233,11 +275,14 @@ class LookupViewModel @Inject constructor(
 
     private fun calculateBinomial() {
         val currentInput = _uiState.value.binomialInput
+        val probabilityToValidate = currentInput.successProbabilityText.toDoubleOrNull()
+            ?: currentInput.successProbability
+
         when (
             val validationResult = binomialInputValidator.validate(
                 numberOfTrialsText = currentInput.numberOfTrials,
                 thresholdText = currentInput.threshold,
-                successProbability = currentInput.successProbability,
+                successProbability = probabilityToValidate,
             )
         ) {
             is LookupValidationResult.Valid -> {
@@ -247,6 +292,7 @@ class LookupViewModel @Inject constructor(
                         binomialInput = currentInput.copy(
                             numberOfTrialsError = null,
                             thresholdError = null,
+                            successProbabilityError = null,
                         ),
                         calculationResult = result,
                     )
@@ -260,6 +306,7 @@ class LookupViewModel @Inject constructor(
                         binomialInput = currentInput.copy(
                             numberOfTrialsError = errors[LookupInputField.BINOMIAL_TRIALS],
                             thresholdError = errors[LookupInputField.BINOMIAL_THRESHOLD],
+                            successProbabilityError = errors[LookupInputField.BINOMIAL_PROBABILITY],
                         ),
                         calculationResult = null,
                     )
@@ -355,13 +402,14 @@ class LookupViewModel @Inject constructor(
         private const val KEY_BINOMIAL_TRIALS = "lookup_binomial_trials"
         private const val KEY_BINOMIAL_THRESHOLD = "lookup_binomial_threshold"
         private const val KEY_BINOMIAL_PROBABILITY = "lookup_binomial_probability"
+        private const val KEY_BINOMIAL_PROBABILITY_TEXT = "lookup_binomial_probability_text"
         private const val KEY_POISSON_RATE = "lookup_poisson_rate"
         private const val KEY_POISSON_THRESHOLD = "lookup_poisson_threshold"
         private const val KEY_NORMAL_Z_TEXT = "lookup_normal_z_text"
         private const val KEY_NORMAL_Z_VALUE = "lookup_normal_z_value"
 
-        val BINOMIAL_PROBABILITIES =
-            (1..9).map { value -> value / 10.0 }
+        private const val MIN_BINOMIAL_PROBABILITY = 0.10
+        private const val MAX_BINOMIAL_PROBABILITY = 0.90
 
         private val DECIMAL_INPUT_REGEX =
             Regex("""\d*\.?\d*""")

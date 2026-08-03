@@ -1,16 +1,15 @@
 package com.alpaomega1136.statsdroid.feature.hypothesis.presentation.components
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.FilterChip
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import com.alpaomega1136.statsdroid.feature.hypothesis.domain.model.SignificanceLevel
+import com.alpaomega1136.statsdroid.ui.components.StatsSegmentedControl
+import com.alpaomega1136.statsdroid.ui.theme.StatsSpacing
 
 @Composable
 fun SignificanceLevelSelector(
@@ -18,18 +17,20 @@ fun SignificanceLevelSelector(
     onLevelSelected: (SignificanceLevel) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(text = "Significance Level (alpha)", style = MaterialTheme.typography.titleMedium)
+    Column(modifier = modifier) {
+        Text(
+            text = "Significance Level (\u03B1)",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
 
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            SignificanceLevel.entries.forEach { level ->
-                FilterChip(
-                    selected = selectedLevel == level,
-                    onClick = { onLevelSelected(level) },
-                    label = { Text(text = level.displayName) },
-                    modifier = Modifier.weight(1f),
-                )
-            }
-        }
+        Spacer(modifier = Modifier.height(StatsSpacing.Small))
+
+        StatsSegmentedControl(
+            items = SignificanceLevel.entries,
+            selectedItem = selectedLevel,
+            onItemSelected = onLevelSelected,
+            itemLabel = { it.displayName },
+        )
     }
 }
