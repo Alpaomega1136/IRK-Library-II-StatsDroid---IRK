@@ -19,6 +19,7 @@ fun CltSimulationCountControl(
     selectedCount: SimulationCount,
     onCountSelected: (SimulationCount) -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
 ) {
     val options = SimulationCount.entries
     val selectedIndex = options.indexOf(selectedCount).coerceAtLeast(0)
@@ -34,6 +35,7 @@ fun CltSimulationCountControl(
             },
             valueRange = 0f..options.lastIndex.toFloat(),
             steps = options.size - 2,
+            enabled = enabled,
             modifier = Modifier.fillMaxWidth(),
         )
         Row(modifier = Modifier.fillMaxWidth()) {

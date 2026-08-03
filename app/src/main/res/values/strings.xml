@@ -12,13 +12,13 @@
     <string name="clt_population_distribution">Original Population Distribution</string>
     <string name="clt_sampling_distribution">Sampling Distribution of Sample Means</string>
     <string name="clt_summary">Live Summary Metrics</string>
-    <string name="about_title">About</string>
-    <string name="about_statsdroid">About StatsDroid</string>
-    <string name="about_features">Main Features</string>
+    <string name="about_title">About Me</string>
+    <string name="about_statsdroid">Tentang StatsDroid</string>
+    <string name="about_features">Fitur Utama</string>
     <string name="about_technology">Technology</string>
     <string name="about_architecture">Architecture</string>
     <string name="about_project_links">Project Links</string>
-    <string name="open_github_profile">Open GitHub Profile</string>
-    <string name="open_repository">Open StatsDroid Repository</string>
-    <string name="open_linkedin_profile">Open LinkedIn Profile</string>
+    <string name="open_github_profile">Buka Profil GitHub</string>
+    <string name="open_repository">Buka Repository StatsDroid</string>
+    <string name="open_linkedin_profile">Buka Profil LinkedIn</string>
 </resources>

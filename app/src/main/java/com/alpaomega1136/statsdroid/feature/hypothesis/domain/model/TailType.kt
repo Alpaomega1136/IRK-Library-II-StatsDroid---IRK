@@ -4,7 +4,7 @@ enum class TailType(
     val displayName: String,
     val alternativeSymbol: String,
 ) {
-    TWO_TAILED(displayName = "Two-tailed", alternativeSymbol = "!="),
+    TWO_TAILED(displayName = "Two-tailed", alternativeSymbol = "≠"),
     RIGHT_TAILED(displayName = "Right-tailed", alternativeSymbol = ">"),
     LEFT_TAILED(displayName = "Left-tailed", alternativeSymbol = "<"),
 }

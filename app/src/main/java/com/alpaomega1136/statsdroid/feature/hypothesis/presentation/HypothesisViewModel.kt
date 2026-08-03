@@ -48,6 +48,7 @@ class HypothesisViewModel @Inject constructor(
             is HypothesisEvent.TailTypeChanged -> _uiState.update {
                 it.copy(tailType = event.tailType, result = null, visualization = null)
             }
+            HypothesisEvent.LoadWorkedExample -> loadWorkedExample()
             HypothesisEvent.Calculate -> calculate()
         }
 
@@ -174,6 +175,27 @@ class HypothesisViewModel @Inject constructor(
     private fun changeSampleSize(value: String) {
         if (!isValidIntegerInput(value)) return
         _uiState.update { it.copy(input = it.input.copy(sampleSize = value, sampleSizeError = null), result = null, visualization = null) }
+    }
+
+    private fun loadWorkedExample() {
+        _uiState.update { currentState ->
+            currentState.copy(
+                input = HypothesisInputState(
+                    hypothesizedMean = "50.0",
+                    hypothesizedMeanValue = 50.0,
+                    sampleMean = "52.0",
+                    sampleMeanValue = 52.0,
+                    standardDeviation = "5.0",
+                    sampleSize = "25",
+                ),
+                significanceLevel = SignificanceLevel.FIVE_PERCENT,
+                tailType = TailType.TWO_TAILED,
+                result = null,
+                visualization = null,
+            )
+        }
+
+        calculate()
     }
 
     private fun calculate() {
